@@ -5,6 +5,7 @@
 **Directora**: Dra. Ing. Roxana Martínez (Ph.D.)  
 **Equipo**: Maga, Flor, Mati  
 **Sede**: Av. Montes de Oca 745, CABA  
+**Archivo de salida**: `REPOSITORIO_SALUD_2022.xlsx`
 
 ---
 
@@ -18,7 +19,7 @@ El laboratorio, activo desde marzo de 2025 y dirigido por la **Dra. Ing. Roxana 
 
 ## ¿De qué se trata?
 
-Se construyó un repositorio centralizado de datasets de salud públicos, recolectados automáticamente desde múltiples plataformas. El resultado es un **Excel catalogado** con metadata enriquecida de cada dataset, pensado para facilitar la búsqueda y selección de datos para investigación en salud e inteligencia artificial.
+Se construyó un repositorio centralizado de datasets de salud públicos, recolectados automáticamente desde múltiples plataformas. El resultado es **`REPOSITORIO_SALUD_2022.xlsx`**, un Excel catalogado con metadata enriquecida de cada dataset, pensado para facilitar la búsqueda y selección de datos para investigación en salud e inteligencia artificial.
 
 Este trabajo se enmarca en la línea de **evaluación y aseguramiento de la calidad de datos en el dominio salud**, aportando una base curada y estructurada que puede ser utilizada en proyectos de investigación, tesis de grado y posgrado, y desarrollos de IA aplicada a medicina dentro del laboratorio y la UAI.
 
@@ -26,18 +27,24 @@ Este trabajo se enmarca en la línea de **evaluación y aseguramiento de la cali
 
 ## ¿Qué se hizo?
 
-Se desarrollaron dos scripts Python que automatizan todo el proceso:
+Todo el proceso está automatizado en **un único script de Python**: `cacic_salud.py`. El script ejecuta el flujo completo de punta a punta:
 
-### 1. Recolección — `scraper_datasets_salud.py`
+> **Scraping → Limpieza → Enriquecimiento → Filtro (≥ 2022) → Excel final**
 
-Busca y descarga automáticamente información de datasets desde cuatro fuentes públicas:
+### Fuentes consultadas
 
-- **Kaggle** — plataforma de ciencia de datos
-- **UCI ML Repository** — repositorio de datasets para machine learning
-- **HealthData.gov** — datos de salud del gobierno de EE.UU.
-- **Hugging Face** — repositorio de datasets de IA
+La recolección se hace **en paralelo** sobre repositorios públicos de datasets:
 
-La búsqueda se realiza sobre un conjunto de **palabras clave en inglés y español** que se envían directamente a cada API para filtrar resultados relevantes:
+| Fuente | Tipo de acceso | Estado |
+|---|---|---|
+| **Zenodo** | API REST (requiere token para evitar bloqueo de requests anónimos) | Activa |
+| **Hugging Face Hub** | API REST pública (token opcional, sube el rate limit) | Activa |
+| **HealthData.gov** | API Socrata (datos abiertos del gobierno de EE.UU.) | Activa |
+| **UCI ML Repository** | API JSON oficial | Activa |
+| **Kaggle** | API oficial con autenticación | Activa |
+| **PhysioNet** | Scraping HTML | Implementada (desactivada por defecto) |
+
+La búsqueda se realiza sobre un conjunto de **~75 palabras clave en inglés y español** que se envían a cada API para filtrar resultados relevantes:
 
 | Categoría | Keywords |
 |---|---|
@@ -48,102 +55,135 @@ La búsqueda se realiza sobre un conjunto de **palabras clave en inglés y espa�
 | Salud pública | `epidemiol`, `vaccine`, `surveillance`, `morbidity`, `public health`, `population health`, `registry`, `virus`, `infection`, `syndrome` |
 | Español | `salud`, `clinica`, `paciente`, `hospitalario`, `enfermedad`, `diagnostico`, `tratamiento`, `epidemiologia`, `salud mental` |
 
-Por cada dataset encontrado, el script extrae automáticamente su nombre, descripción, fuente, link, formato, año y autor, y lo **clasifica en dos dimensiones**:
+### Clasificación automática
 
-- **Área médica**: 15 categorías (oncología, cardiología, neurología, diabetes, imagen médica, genómica, salud mental, epidemiología, UCI, respiratorio, farmacología, pediatría, señales fisiológicas, dermatología, oftalmología)
-- **Tipo de dato**: 8 categorías (imágenes médicas, señales fisiológicas, genómico, EHR, epidemiológico, texto clínico/NLP, señales de audio, clínico tabular)
+Por cada dataset encontrado, el script extrae nombre, descripción, fuente, link, formato, año y autor, y lo **clasifica en dos dimensiones** mediante un sistema de *scoring por keywords* (cuenta coincidencias por categoría y asigna la de mayor puntaje):
 
-La clasificación se realiza mediante un sistema de scoring por keywords: el script analiza el nombre y descripción del dataset, cuenta las coincidencias con los términos de cada categoría y asigna la de mayor puntaje.
+- **Área médica**: 15 categorías + "General / Multidisciplinar" (oncología, cardiología, neurología, diabetes/endocrinología, imagen médica, genómica/bioinformática, salud mental, epidemiología/salud pública, UCI/cuidados intensivos, respiratorio, farmacología, pediatría/neonatal, señales/fisiología, dermatología, oftalmología).
+- **Tipo de dato**: 8 categorías (imágenes médicas, señales fisiológicas, genómico, EHR, epidemiológico, texto clínico/NLP, señales de audio, clínico tabular).
 
-El scraper también detecta el **formato de archivo** (CSV, DICOM, FASTA, WFDB, Parquet, NIfTI, HDF5, entre otros) y maneja de forma robusta los fallos de red mediante reintentos automáticos con backoff exponencial. Todas las fuentes se consultan **en paralelo** para reducir el tiempo total de ejecución.
+También detecta el **formato de archivo** (CSV, DICOM, FASTA, WFDB, Parquet, NIfTI, HDF5, entre otros) y el **idioma**.
 
-Los resultados se integran al archivo `CACIC_COLGATE.xlsx` existente, eliminando duplicados antes de agregar las nuevas filas y preservando el formato visual del Excel.
+### Enriquecimiento y robustez
 
-### 2. Limpieza — `limpiar_datasets.py`
+- **Año de actualización**: tras la recolección, el script vuelve a consultar las APIs de cada fuente (en paralelo, con *workers*) para completar el año de última actualización de cada dataset.
+- **Checkpoint**: guarda el progreso del enriquecimiento (`cacic_checkpoint.csv`) para poder reanudar sin repetir consultas.
+- **Reintentos** automáticos con *backoff* y *timeouts* cortos para sobrevivir a fuentes caídas o lentas.
+- **Reporte QA** (`QA_REPORT.md`): métricas por fuente (éxito/error/duplicados), cobertura del enriquecimiento, distribución de relevancia, completitud y áreas.
 
-Procesa el Excel generado y aplica una serie de mejoras:
+El resultado final, ya filtrado y deduplicado, se exporta a `REPOSITORIO_SALUD_2022.xlsx` con dos hojas: **DATASETS - SALUD** (el catálogo, 19 columnas) y **RESUMEN** (totales por relevancia, área y fuente).
 
-- Elimina duplicados (exactos y por similitud de nombre)
-- Filtra datasets que no son relevantes para salud
-- Corrige y completa clasificaciones faltantes
-- Infiere campos vacíos (fuente, país, idioma) a partir de la URL
-- Renumera el listado de forma secuencial
-- Genera una hoja de auditoría con todos los cambios aplicados
+---
+
+## Filtros aplicados
+
+El script aplica una cadena de filtros que determina qué datasets entran finalmente al repositorio. Se ejecutan en este orden:
+
+### 1. Filtro temático — ¿es de salud? (`is_health`)
+
+Primer colador. Cada dataset (título + descripción + tags) debe coincidir con **al menos una** de las ~75 palabras clave médicas en inglés y español. Lo que no es de salud se descarta.
+
+> **Detalle técnico**: el match usa *word boundary* al inicio del término (`\bcancer`), no coincidencia por substring. Esto corrige un bug donde `"cancer" in "dancer"` daba verdadero, y permite matchear prefijos médicos (`epidemiol` → `epidemiology`) sin falsos positivos.
+
+### 2. Filtro de duplicados (`deduplicate`)
+
+Se eliminan repetidos por:
+- **Link** idéntico, o
+- **Nombre** del dataset normalizado (minúsculas, espacios colapsados).
+
+### 3. Filtro temporal — el principal: **≥ 2022** (`classify_relevance`)
+
+Cada dataset se clasifica en tres categorías según el corte `year_cutoff = 2022`:
+
+| Categoría | Criterio |
+|---|---|
+| **Clásico** | El nombre figura entre los datasets de referencia (MIMIC, NHANES, TCGA, CheXpert, etc.) **o** la fuente es PhysioNet. *Pasa siempre, sin importar el año.* |
+| **Reciente** | Año de actualización **o** año de publicación **≥ 2022** |
+| **Antiguo** | Todo lo demás (año < 2022) |
+
+> Por eso en el Excel pueden aparecer datasets con año de publicación anterior a 2022: entran porque su **año de actualización** es ≥ 2022, o porque son "clásicos".
+
+### 4. Filtro de salida final
+
+Al Excel final **solo entran** los datasets marcados como **`Reciente` + `Clásico`**. Los **`Antiguo`** quedan **excluidos** del `.xlsx` (aunque sí se registran en el log CSV para trazabilidad).
+
+### Resumen en una línea
+
+> Entra al repositorio un dataset si **(1)** es de salud, **(2)** no está duplicado, y **(3)** fue publicado o actualizado en 2022 o después — *salvo* los datasets "clásicos" (MIMIC, NHANES, PhysioNet, etc.), que entran siempre por su valor de referencia.
+
+Los demás clasificadores (área médica, tipo de datos, formato, idioma) **no descartan filas**: solo etiquetan cada dataset.
+
+---
+
+## Estructura del Excel (19 columnas)
+
+| # | Columna | # | Columna |
+|---|---|---|---|
+| 1 | Nro | 11 | Cant. variables |
+| 2 | Nombre del dataset | 12 | Año publicación |
+| 3 | Área médica | 13 | Año actualización |
+| 4 | Tipo de datos | 14 | Link |
+| 5 | Fuente | 15 | Idioma |
+| 6 | Autor / Institución | 16 | Breve descripción |
+| 7 | País | 17 | Propuesta / Objetivo |
+| 8 | Cant. registros | 18 | Observaciones |
+| 9 | Tipo de formato | 19 | Integrante responsable |
+| 10 | Variables principales | | |
 
 ---
 
 ## Resultado
 
-El archivo `CACIC_COLGATE.xlsx` es el producto final del proceso. A continuación el detalle de la última ejecución (13/05/2026):
+`REPOSITORIO_SALUD_2022.xlsx` es el producto final del proceso. Estado actual del archivo:
 
-**Datasets previos en el archivo (carga manual preexistente): 1.146**
+**Total de datasets en el repositorio final: 1.386**
 
-| Fuente | Datasets scrapeados | Nuevos agregados (sin duplicados) |
-|---|---|---|
-| Kaggle | 500 (límite por ejecución) | 448 |
-| HealthData.gov | 494 | 494 |
-| Hugging Face Hub | 334 | 307 |
-| UCI ML Repository | 46 | 46 |
-| Zenodo | 0 (errores HTTP 400) | 0 |
-| **Total** | **1.384** | **1.295** |
+**Por fuente:**
 
-- Duplicados detectados y eliminados: **89**
-- **Total final en el archivo: 1.393 datasets**
-
-**Fuentes activas:**
-
-| Fuente | Tipo de acceso |
+| Fuente | Datasets |
 |---|---|
-| Kaggle | API oficial con autenticación |
-| HealthData.gov | API Socrata (datos abiertos del gobierno de EE.UU.) |
-| Hugging Face Hub | API REST pública |
-| UCI ML Repository | Librería oficial `ucimlrepo` |
+| Zenodo | 466 |
+| Hugging Face Hub | 454 |
+| HealthData.gov | 377 |
+| UCI ML Repository | 46 |
+| Kaggle | 43 |
+| **Total** | **1.386** |
 
-**Áreas médicas presentes en el repositorio:**
+**Por área médica (top):**
 
-El repositorio combina dos tipos de clasificación: las asignadas **manualmente** por el equipo en los primeros datasets (más específicas y granulares) y las asignadas **automáticamente** por el scraper usando el sistema de 15 categorías.
-
-*Áreas de la carga manual (más específicas):*
-
-| | |
+| Área médica | Datasets |
 |---|---|
-| Cáncer de Mama | Enfermedades Cardiovasculares |
-| UCI / Señales Clínicas Avanzadas | Cáncer de Pulmón y Oncología |
-| Diabetes y Metabolismo | Diabetes y Factores de Riesgo |
-| Salud Materna, Fetal y Reproductiva | Fertilidad y Salud Reproductiva |
-| Enfermedades Infecciosas y Vigilancia Epidemiológica | Sueño y Trastornos Respiratorios |
-| Sistemas de Salud e Infraestructura | Salud Digital e Inteligencia Artificial |
-| Salud Digital y Machine Learning | Equidad en Salud y Calidad Hospitalaria |
-| Tecnología Quirúrgica y Neurociencia Aplicada | Economía de la Salud y Financiamiento |
-| Enfermedades Renales | Mortalidad y Epidemiología |
-| Discapacidad y Rehabilitación | Salud Ambiental |
-| Cardiopatía | Hepatitis · Parkinson · Obesidad · Anemia · Asma · Tiroidea |
+| General / Multidisciplinar | 538 |
+| Epidemiología / Salud Pública | 248 |
+| Farmacología | 91 |
+| Imagen Médica | 87 |
+| Genómica / Bioinformática | 78 |
+| Oncología | 76 |
+| Neurología | 41 |
+| Cardiología | 41 |
+| Diabetes / Endocrinología | 36 |
+| Pediatría / Neonatal | 33 |
+| Salud Mental | 31 |
+| UCI / Cuidados Intensivos | 24 |
+| Respiratorio | 24 |
+| Dermatología | 17 |
+| Oftalmología | 11 |
+| Señales / Fisiología | 10 |
 
-*Áreas del scraper automático (15 categorías):*
+**Por tipo de dato:**
 
-| | |
+| Tipo de dato | Datasets |
 |---|---|
-| Epidemiología / Salud Pública | General / Multidisciplinar |
-| Genómica / Bioinformática | Oncología |
-| Imagen Médica | Salud Mental |
-| Cardiología | Farmacología |
-| Neurología | Diabetes / Endocrinología |
-| UCI / Cuidados Intensivos | Respiratorio |
-| Oftalmología | Pediatría / Neonatal |
-| Señales / Fisiología | Dermatología |
+| Clínico (tabular) | 590 |
+| Epidemiológico | 239 |
+| Texto clínico (NLP) | 190 |
+| Imágenes médicas | 177 |
+| Genómico | 148 |
+| EHR (Historia Clínica) | 24 |
+| Señales de audio | 11 |
+| Señales fisiológicas | 7 |
 
-**Tipos de datos clasificados (8):**
-
-| Tipo | Ejemplos de términos que lo identifican |
-|---|---|
-| Imágenes médicas | MRI, CT, X-ray, DICOM, PNG, fundus, scan |
-| Señales fisiológicas | ECG, EEG, EMG, WFDB, EDF, time series |
-| Genómico | DNA, RNA, FASTA, VCF, sequence, microarray |
-| EHR (Historia Clínica) | electronic health record, MIMIC, clinical notes, discharge |
-| Epidemiológico | survey, population, COVID, mortality, registry, census |
-| Texto clínico (NLP) | clinical notes, discharge summary, NLP, annotation |
-| Señales de audio | audio, speech, cough, respiratory sound, voice |
-| Clínico (tabular) | clinical, diagnosis, patient, hospital, CSV, laboratory |
+**Idioma:** predominantemente inglés, con una minoría en español y otros idiomas.
 
 ---
 
@@ -151,12 +191,20 @@ El repositorio combina dos tipos de clasificación: las asignadas **manualmente*
 
 | Archivo | Descripción |
 |---|---|
-| `CACIC_COLGATE.xlsx` | Base de datos principal con todos los datasets |
-| `scraper_datasets_salud.py` | Script de recolección automática |
-| `limpiar_datasets.py` | Script de limpieza y enriquecimiento |
+| `cacic_salud.py` | Script único: hace todo el flujo (scraping → limpieza → enriquecimiento → filtro → Excel) |
+| `REPOSITORIO_SALUD_2022.xlsx` | Repositorio final catalogado (producto del proceso) |
 | `requirements.txt` | Dependencias Python necesarias para ejecutar |
-| `scraper_output.txt` | Resumen de la última ejecución del scraper |
-| `scraper.log` / `enriquecimiento.log` | Logs de ejecución detallados |
+| `DOCUMENTACION.md` | Este documento |
+| `.env` | Secretos / tokens de API (no se versiona) |
+
+**Archivos generados en cada ejecución (no se versionan):**
+
+| Archivo | Descripción |
+|---|---|
+| `cacic_salud_log.csv` | Log por dataset (año, fuente del año, status, relevancia) |
+| `QA_REPORT.md` | Reporte de control de calidad de la corrida |
+| `cacic_checkpoint.csv` | Checkpoint para reanudar el enriquecimiento |
+| `cacic_salud.log` | Log de ejecución detallado |
 
 ---
 
@@ -166,9 +214,11 @@ El repositorio combina dos tipos de clasificación: las asignadas **manualmente*
 # 1. Instalar dependencias (una sola vez)
 pip install -r requirements.txt
 
-# 2. Recolectar nuevos datasets
-python scraper_datasets_salud.py
+# 2. Configurar secretos: copiar .env.example a .env y completar
+#    (al menos ZENODO_TOKEN, ya que la red bloquea requests anónimos a Zenodo)
 
-# 3. Limpiar y mejorar el Excel resultante
-python limpiar_datasets.py
+# 3. Ejecutar el flujo completo
+python cacic_salud.py
 ```
+
+Al terminar genera `REPOSITORIO_SALUD_2022.xlsx`, `cacic_salud_log.csv` y `QA_REPORT.md`.
