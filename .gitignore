@@ -1,0 +1,23 @@
+__pycache__/
+*.pyc
+*.log
+
+# Secretos
+.env
+.env.local
+*.secret
+
+# Outputs y caches del pipeline (regenerables)
+~$*.xlsx
+runs/
+cacic_checkpoint.csv
+cacic_salud_log.csv
+REPOSITORIO_SALUD_2022.xlsx
+QA_REPORT.md
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# IDE
+.vscode/
+.idea/
