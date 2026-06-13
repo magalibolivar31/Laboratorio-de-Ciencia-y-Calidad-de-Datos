@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
-import { useNavigate } from 'react-router-dom';
-import { Database, FileSpreadsheet, Download } from 'lucide-react';
-import api from '../lib/api';
+import { FileSpreadsheet, Download } from 'lucide-react';
 
 interface ExportItem {
   id: number;

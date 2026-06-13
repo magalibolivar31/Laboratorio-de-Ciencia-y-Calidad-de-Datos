@@ -40,16 +40,13 @@ interface UserInfo {
 
 const SearchLaboratory: React.FC = () => {
   const [selectedApi, setSelectedApi] = useState('ADMIN_DEFAULT');
-  const [customKey, setCustomKey] = useState('');
   const [keywords, setKeywords] = useState('');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<LabResult[]>([]);
   const [user, setUser] = useState<UserInfo | null>(null);
-  const [error, setError] = useState('');
-  const [status, setStatus] = useState<'idle' | 'searching' | 'cleaning' | 'completed'>('idle');
+
   const [savedTokens, setSavedTokens] = useState<SavedToken[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const navigate = useNavigate();
 
   const apiOptions = [
     { id: 'ADMIN_DEFAULT', label: 'BÚSQUEDA INTEGRAL (Todas las fuentes)', icon: <Database size={16} /> },
@@ -113,30 +110,15 @@ const SearchLaboratory: React.FC = () => {
     if (!keywords.trim()) return;
 
     setLoading(true);
-    setError('');
-    setStatus('searching');
     setResults([]);
-
-    let finalApiKey = '';
-    if (selectedApi.startsWith('SAVED_')) {
-      const tokenId = parseInt(selectedApi.split('_')[1]);
-      const token = savedTokens.find(t => t.id === tokenId);
-      finalApiKey = token ? token.api_key_cifrada : '';
-    } else {
-      finalApiKey = selectedApi === 'ADMIN_DEFAULT' ? '' : customKey;
-    }
 
     try {
       const response = await api.post('/datasets/search', { 
         keywords: [keywords],
-        apiKey: finalApiKey,
+        apiKey: '',
         service: selectedApi
       });
       
-      setStatus('cleaning');
-      await new Promise(r => setTimeout(r, 1000));
-      
-      setStatus('completed');
       const backendResults = response.data.resultados || [];
       const fileUrl = response.data.url;
       
@@ -148,9 +130,6 @@ const SearchLaboratory: React.FC = () => {
       setResults(mappedResults);
     } catch (err: any) {
       console.error('Error en el motor:', err);
-      const msg = err.response?.data?.error || 'Error al conectar con el servidor.';
-      setError(msg);
-      setStatus('idle');
     } finally {
       setLoading(false);
     }

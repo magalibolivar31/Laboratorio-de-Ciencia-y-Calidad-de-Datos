@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
-import { useNavigate } from 'react-router-dom';
 import { Settings as SettingsIcon } from 'lucide-react';
-import api from '../lib/api';
 
 interface UserInfo {
   nombre: string;

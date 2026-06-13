@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Sidebar from '../components/Sidebar';
-import { useNavigate } from 'react-router-dom';
 import { Search, Download, ExternalLink, ChevronRight, Loader2, AlertCircle } from 'lucide-react';
 import api from '../lib/api';
 
