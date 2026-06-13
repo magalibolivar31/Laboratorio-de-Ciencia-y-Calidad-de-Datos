@@ -41,10 +41,24 @@ Este documento detalla la estrategia definitiva para desplegar el **Laboratorio 
 ## 💻 Fase 3: El Frontend
 
 1.  Crea una nueva **Application**.
-2.  **Root Directory:** `/frontend`.
-3.  **Build Type:** Nixpacks (Dokploy leerá el archivo `nixpacks.toml`).
-4.  **Variables de Entorno:**
+2.  **Root Directory:** `frontend` (Sin barras).
+3.  **Build Type:** Nixpacks.
+4.  **Nixpacks Config File:** Dejar **VACÍO** (El sistema detectará automáticamente el archivo `frontend/nixpacks.toml`).
+
+### Requisitos de Compilación (Ya aplicados):
+*   **Node.js:** Debe ser version **20+** (Configurado vía `engines` en `package.json`, `.nvmrc` y `nixpacks.toml`).
+*   **Variables de Entorno:**
     *   `VITE_API_URL`: URL pública del backend + `/api`.
+
+---
+
+## ⚠️ Solución de Errores Comunes
+
+### 1. Error de Versión de Node (Vite/ReferenceError)
+Si aparece un error de `Node 18` o `CustomEvent is not defined`, asegurate de que el build esté usando Node 20. El proyecto ya incluye los archivos `.nvmrc` y `.node-version` para forzar esto.
+
+### 2. Error "Could not find file frontend/nixpacks.toml"
+Este error ocurre si el **Nixpacks Config File** en Dokploy está configurado como `frontend/nixpacks.toml` mientras el **Root Directory** ya es `frontend`. La solución es dejar el campo del archivo de configuración vacío.
 
 ---
 
