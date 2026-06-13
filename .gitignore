@@ -1,23 +1,45 @@
+# [ Node.js / React ]
+node_modules/
+dist/
+dist-ssr/
+*.local
+.eslintcache
+
+# [ Python ]
 __pycache__/
-*.pyc
-*.log
-
-# Secretos
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+ENV/
 .env
-.env.local
-*.secret
-
-# Outputs y caches del pipeline (regenerables)
-~$*.xlsx
-runs/
+.env.*
+!.env.example
+cacic_salud.log
 cacic_checkpoint.csv
-cacic_salud_log.csv
-REPOSITORIO_SALUD_2022.xlsx
+busqueda_log.csv
 QA_REPORT.md
 
-# Editor / herramientas locales
-.claude/
+# [ Base de Datos / Prisma ]
+/backend/prisma/*.db
+/backend/prisma/*.db-journal
 
-# IDE
+# [ Archivos Generados (Exports) ]
+exports/*.xlsx
+REPOSITORIO_*.xlsx
+
+# [ Herramientas / IDEs ]
 .vscode/
 .idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# [ Logs ]
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs
+*.log
