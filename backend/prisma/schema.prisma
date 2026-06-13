@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlserver"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -14,7 +14,6 @@ model Usuario {
   password_hash String
   created_at    DateTime  @default(now())
   tokens        Token[]
-  datasets      Dataset[]
 }
 
 model Token {
@@ -24,17 +23,4 @@ model Token {
   servicio        String   @db.VarChar(50)
   created_at      DateTime @default(now())
   usuario         Usuario  @relation(fields: [usuario_id], references: [id])
-}
-
-model Dataset {
-  id             Int      @id @default(autoincrement())
-  usuario_id     Int
-  palabra_clave  String   @db.VarChar(200)
-  titulo         String
-  descripcion    String?
-  url_fuente     String
-  fuente         String   @db.VarChar(50)
-  fecha_busqueda DateTime @default(now())
-  archivo_excel  String?
-  usuario        Usuario  @relation(fields: [usuario_id], references: [id])
 }
