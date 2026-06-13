@@ -6,19 +6,22 @@ import Settings from './pages/Settings';
 import Exports from './pages/Exports';
 import SearchLaboratory from './pages/SearchLaboratory';
 import Home from './pages/Home';
+import GlobalLayout from './components/GlobalLayout';
 
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/exports" element={<Exports />} />
-        <Route path="/laboratory" element={<SearchLaboratory />} />
-      </Routes>
+      <GlobalLayout>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/exports" element={<Exports />} />
+          <Route path="/laboratory" element={<SearchLaboratory />} />
+        </Routes>
+      </GlobalLayout>
     </Router>
   );
 }

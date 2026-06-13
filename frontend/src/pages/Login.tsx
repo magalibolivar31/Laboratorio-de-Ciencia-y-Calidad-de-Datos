@@ -28,16 +28,19 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 p-4">
-      <div className="max-w-4xl w-full bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row">
+    <div className="min-h-[calc(100vh-64px)] w-full flex items-center justify-center bg-gray-50 px-6 py-12">
+      <div className="max-w-4xl w-full bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row border border-gray-100">
         {/* Lado Izquierdo: Branding / Imagen */}
-        <div className="md:w-1/2 bg-uai-red p-12 flex flex-col justify-center text-white">
-          <h1 className="text-4xl font-display font-bold mb-6">Laboratorio de Ciencia y Calidad de Datos</h1>
-          <p className="text-uai-accent text-lg">
-            Plataforma centralizada para la búsqueda y gestión de datasets médicos y científicos de alta calidad.
-          </p>
-          <div className="mt-12 opacity-20">
-            <LogIn size={200} />
+        <div className="md:w-1/2 bg-uai-red p-12 flex flex-col justify-center text-white relative overflow-hidden">
+          <div className="relative z-10">
+            <h1 className="text-5xl font-black tracking-tighter mb-6 leading-none uppercase">Laboratorio de Ciencias de Datos</h1>
+            <div className="w-20 h-2 bg-uai-accent mb-8 rounded-full"></div>
+            <p className="text-uai-accent/80 text-xl font-medium italic">
+              Plataforma institucional para la investigación avanzada y gestión de datasets científicos.
+            </p>
+          </div>
+          <div className="absolute -bottom-20 -left-20 opacity-10">
+            <LogIn size={400} />
           </div>
         </div>
 

@@ -8,9 +8,18 @@ const Home: React.FC = () => {
   return (
     <div className="min-h-screen w-full relative overflow-hidden flex flex-col items-center justify-center">
       
-      {/* LOGO INSTITUCIONAL SUPERIOR (FIJO) */}
-      <div className="absolute top-10 left-10 z-30 animate-fade-in">
-        <img src="/logo.png" alt="Logo UAI" className="h-12 md:h-16 object-contain" />
+      {/* SELLO INSTITUCIONAL SUPERIOR (FIJO) */}
+      <div className="absolute top-8 left-8 z-[70] animate-fade-in">
+        <div 
+          onClick={() => navigate('/')}
+          className="bg-white p-2 md:p-3 rounded-2xl shadow-2xl border-2 border-uai-red/10 cursor-pointer hover:scale-105 transition-all flex items-center gap-4"
+        >
+          <img src="/logo.png" alt="Logo UAI" className="h-10 md:h-12 object-contain" />
+          <div className="hidden sm:block border-l-2 border-gray-100 pl-4 pr-2 text-left">
+            <p className="text-[10px] font-black text-uai-red uppercase leading-none tracking-tight">Universidad Abierta</p>
+            <p className="text-[10px] font-black text-uai-red uppercase leading-none tracking-tight">Interamericana</p>
+          </div>
+        </div>
       </div>
 
       {/* IMAGEN DE FONDO CON DESENFOQUE SUTIL */}
