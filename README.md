@@ -5,7 +5,7 @@
 ![Estado](https://img.shields.io/badge/Estado-Producción-green)
 
 Bienvenido al sistema oficial del **Laboratorio de Análisis y Calidad de Datos del CAETI (UAI)**. Este entorno ha sido diseñado para la investigación avanzada, permitiendo la búsqueda, filtrado y generación de datasets científicos de alta calidad de forma automatizada.
-
+shshhshshshshshshshssh
 ---
 
 ## 🚀 Características Principales
