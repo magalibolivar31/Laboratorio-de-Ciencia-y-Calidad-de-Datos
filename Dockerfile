@@ -29,6 +29,9 @@ COPY backend/ .
 # 5. COMPILAR TYPESCRIPT (Genera dist/)
 RUN npm run build
 
+# Crear link simbólico para que 'python' apunte a 'python3'
+RUN ln -s /usr/bin/python3 /usr/bin/python
+
 # 6. COPIAR EL MOTOR ETL DE PYTHON
 RUN mkdir -p python
 COPY python/etl.py ./python/etl.py

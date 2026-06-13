@@ -15,8 +15,15 @@ export const searchDatasets = async (req: Request, res: Response) => {
 
   try {
     const pythonPath = process.env.PYTHON_PATH || 'python';
-    const scriptPath = path.resolve(__dirname, '../../../python/etl.py');
-    const exportsPath = path.resolve(__dirname, '../../../exports');
+    
+    // Ruta absoluta basada en la raíz del proyecto (/app en Docker)
+    const rootDir = path.resolve(process.cwd());
+    const scriptPath = path.join(rootDir, 'python/etl.py');
+    const exportsPath = path.join(rootDir, 'exports');
+
+    if (!fs.existsSync(exportsPath)) {
+      fs.mkdirSync(exportsPath, { recursive: true });
+    }
 
     // Configurar variables de entorno (API Keys)
     // Prioridad: API Key manual (si viene en apiKey) > .env
