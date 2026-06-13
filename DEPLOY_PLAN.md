@@ -1,49 +1,34 @@
 # 🚀 Plan de Despliegue en Dokploy — UAI | CAETI
 
-Este documento detalla la estrategia para desplegar el **Laboratorio de Ciencias de Datos** de forma automatizada.
+Este documento detalla la estrategia definitiva para desplegar el proyecto.
 
 ---
 
-## ⚠️ CORRECCIÓN DE ERROR DE RUTAS (IMPORTANTE)
+## 🛠️ CONFIGURACIÓN DE DOKPLOY (BACKEND)
 
-Si ves un error como `cannot create ... backend/backend/.env: Directory nonexistent`, seguí estos pasos exactos en tu panel de Dokploy para el **Backend**:
+Para solucionar el error de archivos no encontrados, movimos la configuración a la raíz. Seguí estos pasos exactos:
 
-1.  Ve a la pestaña **General**.
-2.  **Root Directory:** Debe ser `/` (una barra inclinada sola). Esto le dice a Dokploy que empiece desde la raíz del repositorio.
+1.  Ve a la pestaña **General** de tu aplicación de Backend en Dokploy.
+2.  **Root Directory:** Dejalo en `/` (o simplemente votalo si te lo permite, debe ser la raíz).
 3.  **Build Type:** Seleccioná **Dockerfile**.
-4.  **Docker Build Path:** Escribí `backend/Dockerfile`.
+4.  **Docker Build Path:** Escribí `Dockerfile` (así solo, sin el prefijo backend/).
 5.  Ve a la pestaña **Environment**.
-6.  **Env file path:** Escribí `backend/.env`.
-
-Al poner Root Directory en `/`, Dokploy buscará el archivo `.env` dentro de la carpeta `backend`, resultando en la ruta correcta `backend/.env`.
+6.  **Env file path:** Escribí `.env` (si estás cargando las variables desde un archivo) o simplemente cargalas manualmente en el panel de Dokploy.
 
 ---
 
 ## 📋 Arquitectura de Despliegue
 
 1.  **Base de Datos:** PostgreSQL (Gestionada por Dokploy).
-2.  **Backend (API + Motor Python):** Contenedor Docker.
+2.  **Backend (API + Motor Python):** Contenedor Docker (Usa el `Dockerfile` de la raíz).
 3.  **Frontend (Web):** Sitio estático (Vite/React).
-
----
-
-## 🛠️ Fase 1: Base de Datos (PostgreSQL)
-
-1.  Creá una nueva **PostgreSQL** en Dokploy.
-2.  Copiá la **Internal Connection String**.
 
 ---
 
 ## ⚙️ Fase 2: El Backend
 
-### Configuración en Dokploy:
-*   **Repo:** Seleccioná tu rama `developers` (o `FLORCITA`).
-*   **Root Directory:** `/` 👈 **CLAVE PARA EVITAR ERRORES**
-*   **Docker Build Path:** `backend/Dockerfile`
-*   **Env file path:** `backend/.env`
-
-### Variables de Env:
-*   `DATABASE_URL`: (La URL de PostgreSQL).
+### Variables de Env en Dokploy:
+*   `DATABASE_URL`: (Internal Connection String de PostgreSQL).
 *   `PORT`: `3001`
 *   `ZENODO_TOKEN`, `KAGGLE_USER`, `KAGGLE_KEY`, `HUGGINGFACE_TOKEN`.
 *   `BACKEND_URL`: La URL pública de Dokploy para el backend.
@@ -60,9 +45,10 @@ Al poner Root Directory en `/`, Dokploy buscará el archivo `.env` dentro de la 
 
 ---
 
-## 🏁 Fase 4: Configuración Inicial (Post-Deploy)
+## 🏁 Fase 4: Comandos Post-Deploy
 
-Una vez que el backend esté "Online":
-1.  Entra a la **Console** del Backend en Dokploy.
-2.  Corré: `npx prisma migrate deploy`
-3.  Corré: `npx prisma db seed`
+Si el servidor arranca pero la base de datos está vacía, entra a la **Console** del Backend en Dokploy y corre:
+```bash
+npx prisma migrate deploy --schema=./prisma/schema.prisma
+npx prisma db seed
+```

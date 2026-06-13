@@ -10,21 +10,21 @@ RUN apt-get update && apt-get install -y \
 # CREAR CARPETA DE LA APLICACIÓN
 WORKDIR /app
 
-# INSTALAR DEPENDENCIAS DE PYTHON
-# Buscamos requirements.txt en la raíz del contexto de build
+# INSTALAR DEPENDENCIAS DE PYTHON (Caché)
+# Copiamos el archivo de requisitos desde la raíz
 COPY requirements.txt ./
 RUN pip3 install --no-cache-dir -r requirements.txt --break-system-packages
 
 # INSTALAR DEPENDENCIAS DE NODE
-# Copiamos solo los archivos de dependencias para aprovechar el caché
+# Copiamos package.json desde la subcarpeta backend
 COPY backend/package*.json ./
 RUN npm install
 
-# COPIAR EL CÓDIGO DEL BACKEND Y LOS SCRIPTS DE PYTHON
+# COPIAR EL CÓDIGO DEL BACKEND
 # Copiamos todo el contenido de la carpeta backend al directorio actual (/app)
 COPY backend/ .
 
-# Aseguramos que la carpeta python existe y copiamos el motor ETL
+# COPIAR EL MOTOR ETL DE PYTHON
 RUN mkdir -p python
 COPY python/etl.py ./python/etl.py
 
@@ -35,5 +35,5 @@ RUN mkdir -p exports
 EXPOSE 3001
 
 # GENERAR CLIENTE PRISMA Y ARRANCAR
-# Usamos migrate deploy para producción
-CMD npx prisma generate && npx prisma migrate deploy && npm start
+# Usamos npx prisma migrate deploy para producción
+CMD npx prisma generate --schema=./prisma/schema.prisma && npx prisma migrate deploy --schema=./prisma/schema.prisma && npm start
