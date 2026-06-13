@@ -1,14 +1,30 @@
-import React from 'react';
-import { Mail, Lock, LogIn } from 'lucide-react';
+import React, { useState } from 'react';
+import { Mail, Lock, LogIn, AlertCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import api from '../lib/api';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulamos un login exitoso para que Flor pueda probar la navegación
-    navigate('/dashboard');
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await api.post('/auth/login', { email, password });
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.usuario));
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Error al iniciar sesión. Verifica tus credenciales.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -32,6 +48,13 @@ const Login: React.FC = () => {
             <p className="text-gray-500 mt-2">Inicia sesión para acceder al repositorio</p>
           </div>
 
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 flex items-center gap-3">
+              <AlertCircle size={20} />
+              <p className="text-sm font-medium">{error}</p>
+            </div>
+          )}
+
           <form className="space-y-6" onSubmit={handleLogin}>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Correo Electrónico</label>
@@ -41,8 +64,11 @@ const Login: React.FC = () => {
                 </span>
                 <input
                   type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-uai-red focus:border-uai-red transition-all"
                   placeholder="ejemplo@uai.edu.ar"
+                  required
                 />
               </div>
             </div>
@@ -55,17 +81,21 @@ const Login: React.FC = () => {
                 </span>
                 <input
                   type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-uai-red focus:border-uai-red transition-all"
                   placeholder="••••••••"
+                  required
                 />
               </div>
             </div>
 
             <button
               type="submit"
-              className="w-full bg-uai-red text-white py-3 rounded-lg font-bold text-lg hover:bg-red-900 transition-colors shadow-lg hover:shadow-uai-red/20"
+              disabled={loading}
+              className={`w-full bg-uai-red text-white py-3 rounded-lg font-bold text-lg hover:bg-red-900 transition-colors shadow-lg hover:shadow-uai-red/20 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              Entrar
+              {loading ? 'Entrando...' : 'Entrar'}
             </button>
           </form>
 

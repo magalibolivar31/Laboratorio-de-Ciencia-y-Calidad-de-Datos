@@ -179,27 +179,32 @@ const SearchLaboratory: React.FC = () => {
   return (
     <div className="h-screen w-full bg-gray-50 flex overflow-hidden">
       {/* Sidebar Fija */}
-      <aside className="w-64 bg-white border-r border-gray-200 hidden md:flex flex-col shrink-0 h-full">
-        <div className="p-6 border-b border-gray-200 flex items-center gap-3">
-          <div className="bg-uai-red p-2 rounded-lg text-white shadow-lg">
-            <Database size={24} />
+      <aside className="w-72 bg-white border-r border-gray-200 hidden md:flex flex-col shrink-0 h-full">
+        <div className="p-8 border-b border-gray-200 flex flex-col gap-2 bg-gray-50/50">
+          <div className="flex items-center gap-3">
+            <div className="bg-uai-red p-2.5 rounded-xl text-white shadow-lg shadow-uai-red/20">
+              <Database size={28} />
+            </div>
+            <span className="font-display font-black text-uai-red text-xl tracking-tighter leading-none">
+              UAI <span className="text-gray-400 font-light">|</span> CAETI
+            </span>
           </div>
-          <span className="font-display font-bold text-gray-800 leading-tight">LABORATORIO DATOS</span>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 ml-1">Ciencias de Datos</p>
         </div>
 
-        <nav className="flex-1 p-4 space-y-2">
-          <p className="text-xs font-bold text-gray-400 uppercase px-3 mb-2">Principal</p>
-          <button onClick={() => navigate('/dashboard')} className="flex items-center gap-3 px-3 py-3 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors w-full text-left font-bold">
+        <nav className="flex-1 p-4 space-y-2 mt-4">
+          <p className="text-[10px] font-black text-gray-400 uppercase px-4 mb-4 tracking-widest">Navegación Sistema</p>
+          <button onClick={() => navigate('/dashboard')} className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-2xl transition-all w-full text-left font-bold text-sm">
             <Search size={20} /> Repositorio Público
           </button>
-          <button className="flex items-center gap-3 px-3 py-3 bg-uai-accent text-uai-red rounded-xl font-bold w-full text-left shadow-sm">
+          <button className="flex items-center gap-3 px-4 py-3 bg-uai-accent/50 text-uai-red rounded-2xl font-black w-full text-left shadow-sm border border-uai-red/10 text-sm">
             <Play size={20} /> Iniciar Búsqueda
           </button>
-          <button onClick={() => navigate('/exports')} className="flex items-center gap-3 px-3 py-3 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors w-full text-left font-bold">
+          <button onClick={() => navigate('/exports')} className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-2xl transition-all w-full text-left font-bold text-sm">
             <FileSpreadsheet size={20} /> Mis Exportaciones
           </button>
-          <p className="text-xs font-bold text-gray-400 uppercase px-3 mb-2 mt-8">Administración</p>
-          <button onClick={() => navigate('/settings')} className="flex items-center gap-3 px-3 py-3 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors w-full text-left font-bold">
+          <p className="text-[10px] font-black text-gray-400 uppercase px-4 mb-4 mt-10 tracking-widest">Administración</p>
+          <button onClick={() => navigate('/settings')} className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-2xl transition-all w-full text-left font-bold text-sm">
             <SettingsIcon size={20} /> Configuración
           </button>
         </nav>
