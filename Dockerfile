@@ -10,30 +10,35 @@ RUN apt-get update && apt-get install -y \
 # CREAR CARPETA DE LA APLICACIÓN
 WORKDIR /app
 
-# INSTALAR DEPENDENCIAS DE PYTHON (Caché)
+# 1. INSTALAR DEPENDENCIAS DE PYTHON
 COPY requirements.txt ./
 RUN pip3 install --no-cache-dir -r requirements.txt --break-system-packages
 
-# INSTALAR DEPENDENCIAS DE NODE
+# 2. INSTALAR DEPENDENCIAS DE NODE
 COPY backend/package*.json ./
 RUN npm install
 
-# COPIAR EL CÓDIGO DEL BACKEND
+# 3. COPIAR SCHEMA PRISMA Y GENERAR CLIENTE (En fase de build)
+# Esto asegura que el cliente esté listo y falla el build si el schema no está
+COPY backend/prisma ./prisma/
+RUN npx prisma generate
+
+# 4. COPIAR EL RESTO DEL CÓDIGO DEL BACKEND
 COPY backend/ .
 
-# COMPILAR TYPESCRIPT (Genera la carpeta dist/)
+# 5. COMPILAR TYPESCRIPT (Genera dist/)
 RUN npm run build
 
-# COPIAR EL MOTOR ETL DE PYTHON
+# 6. COPIAR EL MOTOR ETL DE PYTHON
 RUN mkdir -p python
 COPY python/etl.py ./python/etl.py
 
-# ASEGURAR QUE LA CARPETA EXPORTS EXISTE
+# 7. ASEGURAR CARPETA DE EXPORTS
 RUN mkdir -p exports
 
-# EXPONER EL PUERTO DEL BACKEND
+# EXPONER EL PUERTO
 EXPOSE 3001
 
-# GENERAR CLIENTE PRISMA Y ARRANCAR
-# Usamos npx prisma migrate deploy para producción
-CMD npx prisma generate --schema=./prisma/schema.prisma && npx prisma migrate deploy --schema=./prisma/schema.prisma && npm start
+# 8. ARRANCAR: Aplicar migraciones y encender servidor
+# Prisma migrate deploy aplica las migraciones pendientes en producción
+CMD npx prisma migrate deploy && npm start
