@@ -1,91 +1,68 @@
 # 🚀 Plan de Despliegue en Dokploy — UAI | CAETI
 
-Este documento detalla la estrategia para desplegar el **Laboratorio de Ciencias de Datos** de forma automatizada utilizando **Dokploy** y **GitHub**.
+Este documento detalla la estrategia para desplegar el **Laboratorio de Ciencias de Datos** de forma automatizada.
 
-> **Nota:** Los archivos de configuración (`backend/Dockerfile` y `frontend/nixpacks.toml`) ya han sido creados y están listos en tu rama `FLORCITA`.
+---
+
+## ⚠️ CORRECCIÓN DE ERROR DE RUTAS (IMPORTANTE)
+
+Si ves un error como `cannot create ... backend/backend/.env: Directory nonexistent`, seguí estos pasos exactos en tu panel de Dokploy para el **Backend**:
+
+1.  Ve a la pestaña **General**.
+2.  **Root Directory:** Debe ser `/` (una barra inclinada sola). Esto le dice a Dokploy que empiece desde la raíz del repositorio.
+3.  **Build Type:** Seleccioná **Dockerfile**.
+4.  **Docker Build Path:** Escribí `backend/Dockerfile`.
+5.  Ve a la pestaña **Environment**.
+6.  **Env file path:** Escribí `backend/.env`.
+
+Al poner Root Directory en `/`, Dokploy buscará el archivo `.env` dentro de la carpeta `backend`, resultando en la ruta correcta `backend/.env`.
 
 ---
 
 ## 📋 Arquitectura de Despliegue
 
-El sistema se compone de tres piezas clave que deben convivir en Dokploy:
 1.  **Base de Datos:** PostgreSQL (Gestionada por Dokploy).
-2.  **Backend (API + Motor Python):** Contenedor Docker (Node.js + Python).
+2.  **Backend (API + Motor Python):** Contenedor Docker.
 3.  **Frontend (Web):** Sitio estático (Vite/React).
 
 ---
 
 ## 🛠️ Fase 1: Base de Datos (PostgreSQL)
 
-1.  En el panel de Dokploy, ve a **"Databases"** y crea una nueva **PostgreSQL**.
-2.  **Configuración:**
-    *   **Name:** `tfi-db`
-    *   **Database Name:** `tfi_laboratorio`
-3.  Una vez creada, copia la **Internal Connection String** (ej: `postgres://user:pass@host:5432/db`). La usaremos en el Backend.
+1.  Creá una nueva **PostgreSQL** en Dokploy.
+2.  Copiá la **Internal Connection String**.
 
 ---
 
-## ⚙️ Fase 2: El Backend (API + Motor ETL)
+## ⚙️ Fase 2: El Backend
 
-### 1. Crear el Servicio en Dokploy
-1.  Crea un nuevo **"Application"**.
-2.  Conecta tu GitHub y selecciona la rama `FLORCITA`.
-3.  **Root Directory:** `/backend`
-4.  **Build Type:** Selecciona **Dockerfile** (Dokploy detectará automáticamente el archivo `backend/Dockerfile`).
+### Configuración en Dokploy:
+*   **Repo:** Seleccioná tu rama `developers` (o `FLORCITA`).
+*   **Root Directory:** `/` 👈 **CLAVE PARA EVITAR ERRORES**
+*   **Docker Build Path:** `backend/Dockerfile`
+*   **Env file path:** `backend/.env`
 
-### 2. Variables de Env (Environment Variables)
-Configura estas llaves en el panel de la Application del Backend:
-*   `DATABASE_URL`: (La URL que copiaste de la base de datos).
+### Variables de Env:
+*   `DATABASE_URL`: (La URL de PostgreSQL).
 *   `PORT`: `3001`
-*   `ZENODO_TOKEN`: Llave maestra del laboratorio.
-*   `KAGGLE_KEY`: Llave maestra del laboratorio.
-*   `HUGGINGFACE_TOKEN`: Llave maestra del laboratorio.
-*   `BACKEND_URL`: La URL pública que le asigne Dokploy al backend.
-
-### 3. Volúmenes Persistentes
-Fundamental para no perder los archivos Excel:
-1.  En el servicio del Backend, ve a **"Volumes"**.
-2.  Crea un montaje: Nombre `uai-exports` -> Carpeta interna: `/app/exports`.
+*   `ZENODO_TOKEN`, `KAGGLE_USER`, `KAGGLE_KEY`, `HUGGINGFACE_TOKEN`.
+*   `BACKEND_URL`: La URL pública de Dokploy para el backend.
 
 ---
 
-## 💻 Fase 3: El Frontend (Interfaz Web)
+## 💻 Fase 3: El Frontend
 
-1.  Crea una nueva **"Application"** en Dokploy.
-2.  Conecta tu GitHub y selecciona la rama `FLORCITA`.
-3.  **Root Directory:** `/frontend`
-4.  **Build Type:** Nixpacks (usará el archivo `frontend/nixpacks.toml`).
-5.  **Variables de Entorno:**
-    *   `VITE_API_URL`: La URL pública de tu backend + `/api` (ej: `https://api-uai.com/api`).
+1.  Crea una nueva **Application**.
+2.  **Root Directory:** `/frontend`
+3.  **Build Type:** Nixpacks.
+4.  **Variables de Entorno:**
+    *   `VITE_API_URL`: URL pública del backend + `/api`.
 
 ---
 
 ## 🏁 Fase 4: Configuración Inicial (Post-Deploy)
 
-Una vez que el backend esté "Online" por primera vez, debés cargar la estructura de la base de datos:
-
-1.  En Dokploy, entra a la Application del **Backend**.
-2.  Ve a la pestaña **"Console"** (Terminal).
-3.  Ejecuta este comando para crear las tablas:
-    ```bash
-    npx prisma migrate deploy
-    ```
-4.  (Opcional) Carga los usuarios iniciales:
-    ```bash
-    npx prisma db seed
-    ```
-
----
-
-## 🔄 Automatización (CI/CD)
-
-A partir de ahora, cada vez que hagas un **`git push origin FLORCITA`**, Dokploy actualizará automáticamente tanto el servidor como la web.
-
----
-
-## ✅ Checklist Final
-- [ ] PostgreSQL creado y URL copiada.
-- [ ] Backend configurado como Dockerfile.
-- [ ] Volumen `/app/exports` creado.
-- [ ] Frontend configurado como Nixpacks.
-- [ ] `migrate deploy` ejecutado desde la consola de Dokploy.
+Una vez que el backend esté "Online":
+1.  Entra a la **Console** del Backend en Dokploy.
+2.  Corré: `npx prisma migrate deploy`
+3.  Corré: `npx prisma db seed`

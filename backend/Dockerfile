@@ -2,7 +2,6 @@
 FROM node:18-slim
 
 # INSTALAR PYTHON Y DEPENDENCIAS DEL SISTEMA
-# Se requiere python3 para el motor ETL
 RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
@@ -11,20 +10,21 @@ RUN apt-get update && apt-get install -y \
 # CREAR CARPETA DE LA APLICACIÓN
 WORKDIR /app
 
-# INSTALAR DEPENDENCIAS DE PYTHON PRIMERO (Caché)
-# Copiamos el archivo de requisitos que está en la raíz del proyecto
+# INSTALAR DEPENDENCIAS DE PYTHON
+# Buscamos requirements.txt en la raíz del contexto de build
 COPY requirements.txt ./
 RUN pip3 install --no-cache-dir -r requirements.txt --break-system-packages
 
 # INSTALAR DEPENDENCIAS DE NODE
+# Copiamos solo los archivos de dependencias para aprovechar el caché
 COPY backend/package*.json ./
 RUN npm install
 
-# COPIAR EL CÓDIGO DEL BACKEND
+# COPIAR EL CÓDIGO DEL BACKEND Y LOS SCRIPTS DE PYTHON
+# Copiamos todo el contenido de la carpeta backend al directorio actual (/app)
 COPY backend/ .
 
-# COPIAR EL SCRIPT DE PYTHON (etl.py) A LA CARPETA QUE EL BACKEND ESPERA
-# El backend busca en ../../../python/etl.py relativo a los controladores
+# Aseguramos que la carpeta python existe y copiamos el motor ETL
 RUN mkdir -p python
 COPY python/etl.py ./python/etl.py
 
@@ -35,5 +35,5 @@ RUN mkdir -p exports
 EXPOSE 3001
 
 # GENERAR CLIENTE PRISMA Y ARRANCAR
-# Usamos migrate deploy para aplicar cambios en producción sin preguntar
+# Usamos migrate deploy para producción
 CMD npx prisma generate && npx prisma migrate deploy && npm start
