@@ -1,5 +1,4 @@
 [phases.setup]
-nixpkgsArchive = "ba63364654942910793796ecb44081075775836a"
 pkgs = ["nodejs_18"]
 
 [phases.build]
