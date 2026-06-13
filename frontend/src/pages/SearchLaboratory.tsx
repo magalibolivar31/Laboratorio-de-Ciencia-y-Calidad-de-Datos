@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Database, Download, LogOut, FileSpreadsheet, Settings as SettingsIcon, Loader2, Play, CheckCircle, AlertCircle, Key, BookOpen, ChevronDown, Plus, Edit, Trash2, X } from 'lucide-react';
+import Sidebar from '../components/Sidebar';
 import { useNavigate } from 'react-router-dom';
 import api from '../lib/api';
 
@@ -194,11 +194,11 @@ const SearchLaboratory: React.FC = () => {
 
         <nav className="flex-1 p-4 space-y-2 mt-4">
           <p className="text-[10px] font-black text-gray-400 uppercase px-4 mb-4 tracking-widest">Navegación Sistema</p>
-          <button onClick={() => navigate('/dashboard')} className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-2xl transition-all w-full text-left font-bold text-sm">
-            <Search size={20} /> Repositorio Público
-          </button>
           <button className="flex items-center gap-3 px-4 py-3 bg-uai-accent/50 text-uai-red rounded-2xl font-black w-full text-left shadow-sm border border-uai-red/10 text-sm">
             <Play size={20} /> Iniciar Búsqueda
+          </button>
+          <button onClick={() => navigate('/dashboard')} className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-2xl transition-all w-full text-left font-bold text-sm">
+            <Search size={20} /> Repositorio Público
           </button>
           <button onClick={() => navigate('/exports')} className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-2xl transition-all w-full text-left font-bold text-sm">
             <FileSpreadsheet size={20} /> Mis Exportaciones

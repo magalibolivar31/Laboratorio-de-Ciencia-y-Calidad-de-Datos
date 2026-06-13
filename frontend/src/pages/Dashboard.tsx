@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, Database, Download, ExternalLink, LogOut, ChevronRight, FileSpreadsheet, Settings as SettingsIcon, Loader2, AlertCircle, Play } from 'lucide-react';
+import Sidebar from '../components/Sidebar';
 import { useNavigate } from 'react-router-dom';
+import { Search, Download, ExternalLink, ChevronRight, Loader2, AlertCircle } from 'lucide-react';
 import api from '../lib/api';
 
 interface DatasetResult {
@@ -104,49 +105,13 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/login');
-  };
-
   const filteredResults = activeCategory === 'Todos' 
     ? results 
     : results.filter(r => r.area === activeCategory);
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      <aside className="w-64 bg-white border-r border-gray-200 hidden md:flex flex-col">
-        <div className="p-6 border-b border-gray-200 flex items-center gap-3">
-          <div className="bg-uai-red p-2 rounded-lg text-white">
-            <Database size={24} />
-          </div>
-          <span className="font-display font-bold text-gray-800 leading-tight">LABORATORIO DATOS</span>
-        </div>
-
-        <nav className="flex-1 p-4 space-y-2">
-          <p className="text-xs font-bold text-gray-400 uppercase px-3 mb-2">Principal</p>
-          <button onClick={() => navigate('/dashboard')} className="flex items-center gap-3 px-3 py-2 bg-uai-accent text-uai-red rounded-lg font-medium w-full text-left">
-            <Search size={18} /> Repositorio Público
-          </button>
-          <button onClick={() => navigate('/laboratory')} className="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors w-full text-left font-medium">
-            <Play size={18} /> Iniciar Búsqueda
-          </button>
-          <button onClick={() => navigate('/exports')} className="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors w-full text-left font-medium">
-            <FileSpreadsheet size={18} /> Mis Exportaciones
-          </button>
-          <p className="text-xs font-bold text-gray-400 uppercase px-3 mb-2 mt-6">Administración</p>
-          <button onClick={() => navigate('/settings')} className="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors w-full text-left font-medium">
-            <SettingsIcon size={18} /> Configuración
-          </button>
-        </nav>
-
-        <div className="p-4 border-t border-gray-200">
-          <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2 w-full text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium">
-            <LogOut size={18} /> Cerrar Sesión
-          </button>
-        </div>
-      </aside>
+      <Sidebar />
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
         <header className="bg-white h-16 border-b border-gray-200 flex items-center justify-between px-8 shrink-0">
