@@ -1,19 +1,6 @@
 # 🚀 Plan de Despliegue en Dokploy — UAI | CAETI
 
-Este documento detalla la estrategia definitiva para desplegar el proyecto.
-
----
-
-## 🛠️ CONFIGURACIÓN DE DOKPLOY (BACKEND)
-
-Para solucionar el error de archivos no encontrados, movimos la configuración a la raíz. Seguí estos pasos exactos:
-
-1.  Ve a la pestaña **General** de tu aplicación de Backend en Dokploy.
-2.  **Root Directory:** Dejalo en `/` (o simplemente votalo si te lo permite, debe ser la raíz).
-3.  **Build Type:** Seleccioná **Dockerfile**.
-4.  **Docker Build Path:** Escribí `Dockerfile` (así solo, sin el prefijo backend/).
-5.  Ve a la pestaña **Environment**.
-6.  **Env file path:** Escribí `.env` (si estás cargando las variables desde un archivo) o simplemente cargalas manualmente en el panel de Dokploy.
+Este documento detalla la estrategia definitiva para desplegar el **Laboratorio de Ciencias de Datos** de forma 100% automatizada.
 
 ---
 
@@ -25,30 +12,53 @@ Para solucionar el error de archivos no encontrados, movimos la configuración a
 
 ---
 
-## ⚙️ Fase 2: El Backend
+## 🛠️ Fase 1: Base de Datos (PostgreSQL)
 
-### Variables de Env en Dokploy:
-*   `DATABASE_URL`: (Internal Connection String de PostgreSQL).
+1.  Creá una nueva **PostgreSQL** en Dokploy.
+2.  Copiá la **Internal Connection String**.
+
+---
+
+## ⚙️ Fase 2: El Backend (Sincronización Automática)
+
+### Configuración en Dokploy:
+1.  Crea un nuevo **Application**.
+2.  **Repo:** Seleccioná la rama `developers` (o `FLORCITA`).
+3.  **Root Directory:** `/` (Raíz del repositorio).
+4.  **Build Type:** **Dockerfile**.
+5.  **Docker Build Path:** `Dockerfile`.
+
+### Variables de Entorno:
+*   `DATABASE_URL`: (URL interna de PostgreSQL).
 *   `PORT`: `3001`
 *   `ZENODO_TOKEN`, `KAGGLE_USER`, `KAGGLE_KEY`, `HUGGINGFACE_TOKEN`.
-*   `BACKEND_URL`: La URL pública de Dokploy para el backend.
+*   `BACKEND_URL`: URL pública de Dokploy para el backend.
+
+> **Nota:** Las migraciones de la base de datos se ejecutan **automáticamente** cada vez que el servidor arranca. No necesitás correr comandos manuales para crear las tablas.
 
 ---
 
 ## 💻 Fase 3: El Frontend
 
 1.  Crea una nueva **Application**.
-2.  **Root Directory:** `/frontend`
-3.  **Build Type:** Nixpacks.
+2.  **Root Directory:** `/frontend`.
+3.  **Build Type:** Nixpacks (Dokploy leerá el archivo `nixpacks.toml`).
 4.  **Variables de Entorno:**
     *   `VITE_API_URL`: URL pública del backend + `/api`.
 
 ---
 
-## 🏁 Fase 4: Comandos Post-Deploy
+## 🏁 Fase 4: Carga de Datos Iniciales (Opcional)
 
-Si el servidor arranca pero la base de datos está vacía, entra a la **Console** del Backend en Dokploy y corre:
-```bash
-npx prisma migrate deploy --schema=./prisma/schema.prisma
-npx prisma db seed
-```
+Si es la primera vez que desplegás y querés cargar el usuario de prueba (`flor@uai.edu.ar`), hacé esto:
+
+1.  Entra a la **Console** del Backend en Dokploy.
+2.  Corré:
+    ```bash
+    npx prisma db seed
+    ```
+
+---
+
+## 🔄 CI/CD Automatizado
+A partir de ahora, cada **`git push origin developers`** actualizará automáticamente todo el sistema (Base de datos, Servidor y Web) sin intervención manual.
