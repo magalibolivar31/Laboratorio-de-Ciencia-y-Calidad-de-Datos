@@ -11,18 +11,18 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # INSTALAR DEPENDENCIAS DE PYTHON (Caché)
-# Copiamos el archivo de requisitos desde la raíz
 COPY requirements.txt ./
 RUN pip3 install --no-cache-dir -r requirements.txt --break-system-packages
 
 # INSTALAR DEPENDENCIAS DE NODE
-# Copiamos package.json desde la subcarpeta backend
 COPY backend/package*.json ./
 RUN npm install
 
 # COPIAR EL CÓDIGO DEL BACKEND
-# Copiamos todo el contenido de la carpeta backend al directorio actual (/app)
 COPY backend/ .
+
+# COMPILAR TYPESCRIPT (Genera la carpeta dist/)
+RUN npm run build
 
 # COPIAR EL MOTOR ETL DE PYTHON
 RUN mkdir -p python
