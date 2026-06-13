@@ -70,9 +70,15 @@ export const searchDatasets = async (req: Request, res: Response) => {
       if (res.headersSent) return;
 
       if (code !== 0) {
-        return res.status(500).json({ error: 'El motor de búsqueda falló.', details: errorOutput });
+        console.error(`[PYTHON ERROR] El script falló con código ${code}. Error Output: ${errorOutput}`);
+        return res.status(500).json({ 
+          error: 'El motor de búsqueda falló.', 
+          details: errorOutput || 'El proceso de Python terminó con un error desconocido.',
+          code: code 
+        });
       }
 
+      console.log(`[PYTHON OUTPUT] ${output}`);
       const match = output.match(/Guardado: (REPOSITORIO_.*\.xlsx)/);
       const filename = match ? match[1] : null;
       const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
