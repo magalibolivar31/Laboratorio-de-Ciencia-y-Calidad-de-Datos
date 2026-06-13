@@ -20,7 +20,6 @@ interface UserInfo {
 const Exports: React.FC = () => {
   const [exports, setExports] = useState<ExportItem[]>([]);
   const [user, setUser] = useState<UserInfo | null>(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const savedUser = localStorage.getItem('user');

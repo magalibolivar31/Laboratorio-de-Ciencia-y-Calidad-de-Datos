@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
-import { Search, Database, Download, Loader2, Play, CheckCircle, AlertCircle, Key, BookOpen, ChevronDown, Plus, X, Edit, Trash2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Search, Database, Download, Loader2, CheckCircle, Key, BookOpen, Plus, X, Edit, Trash2 } from 'lucide-react';
 import api from '../lib/api';
 
 interface LabResult {

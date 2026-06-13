@@ -11,7 +11,6 @@ interface UserInfo {
 
 const Settings: React.FC = () => {
   const [user, setUser] = useState<UserInfo | null>(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const savedUser = localStorage.getItem('user');

@@ -28,7 +28,6 @@ const Dashboard: React.FC = () => {
   const [results, setResults] = useState<DatasetResult[]>([]);
   const [user, setUser] = useState<UserInfo | null>(null);
   const [error, setError] = useState('');
-  const navigate = useNavigate();
 
   const categorias = ['Todos', 'Salud', 'Educación', 'Ciencias Sociales', 'Tecnología', 'Economía'];
 
