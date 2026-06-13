@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
-import { Search, Database, Download, Loader2, Play, CheckCircle, AlertCircle, Key, BookOpen, ChevronDown, Plus, X } from 'lucide-react';
+import { Search, Database, Download, Loader2, Play, CheckCircle, AlertCircle, Key, BookOpen, ChevronDown, Plus, X, Edit, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../lib/api';
 
@@ -50,9 +50,6 @@ const SearchLaboratory: React.FC = () => {
   const [status, setStatus] = useState<'idle' | 'searching' | 'cleaning' | 'completed'>('idle');
   const [savedTokens, setSavedTokens] = useState<SavedToken[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingToken, setEditingToken] = useState<SavedToken | null>(null);
-  const [newApiName, setNewApiName] = useState('');
-  const [newApiKey, setNewApiKey] = useState('');
   const navigate = useNavigate();
 
   const apiOptions = [
@@ -88,17 +85,14 @@ const SearchLaboratory: React.FC = () => {
     fetchTokens();
   }, []);
 
-  const handleAddOrUpdateToken = async () => {
-    if (!newApiName || !newApiKey) return;
+  const handleAddOrUpdateToken = async (name: string, key: string, editingId: number | null) => {
+    if (!name || !key) return;
     try {
-      if (editingToken) {
-        await api.put(`/tokens/${editingToken.id}`, { servicio: newApiName, api_key: newApiKey });
+      if (editingId) {
+        await api.put(`/tokens/${editingId}`, { servicio: name, api_key: key });
       } else {
-        await api.post('/tokens', { servicio: newApiName, api_key: newApiKey });
+        await api.post('/tokens', { servicio: name, api_key: key });
       }
-      setNewApiName('');
-      setNewApiKey('');
-      setEditingToken(null);
       fetchTokens();
     } catch (err) {
       alert('Error al guardar la API');
@@ -171,57 +165,15 @@ const SearchLaboratory: React.FC = () => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/login');
-  };
-
   return (
     <div className="h-screen w-full bg-gray-50 flex overflow-hidden">
-      {/* Sidebar Fija */}
-      <aside className="w-72 bg-white border-r border-gray-200 hidden md:flex flex-col shrink-0 h-full">
-        <div className="p-8 border-b border-gray-200 flex flex-col gap-2 bg-gray-50/50">
-          <div className="flex items-center gap-3">
-            <div className="bg-uai-red p-2.5 rounded-xl text-white shadow-lg shadow-uai-red/20">
-              <Database size={28} />
-            </div>
-            <span className="font-display font-black text-uai-red text-xl tracking-tighter leading-none">
-              UAI <span className="text-gray-400 font-light">|</span> CAETI
-            </span>
-          </div>
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 ml-1">Ciencias de Datos</p>
-        </div>
-
-        <nav className="flex-1 p-4 space-y-2 mt-4">
-          <p className="text-[10px] font-black text-gray-400 uppercase px-4 mb-4 tracking-widest">Navegación Sistema</p>
-          <button className="flex items-center gap-3 px-4 py-3 bg-uai-accent/50 text-uai-red rounded-2xl font-black w-full text-left shadow-sm border border-uai-red/10 text-sm">
-            <Play size={20} /> Iniciar Búsqueda
-          </button>
-          <button onClick={() => navigate('/dashboard')} className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-2xl transition-all w-full text-left font-bold text-sm">
-            <Search size={20} /> Repositorio Público
-          </button>
-          <button onClick={() => navigate('/exports')} className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-2xl transition-all w-full text-left font-bold text-sm">
-            <FileSpreadsheet size={20} /> Mis Exportaciones
-          </button>
-          <p className="text-[10px] font-black text-gray-400 uppercase px-4 mb-4 mt-10 tracking-widest">Administración</p>
-          <button onClick={() => navigate('/settings')} className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-2xl transition-all w-full text-left font-bold text-sm">
-            <SettingsIcon size={20} /> Configuración
-          </button>
-        </nav>
-
-        <div className="p-4 border-t border-gray-200">
-          <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-3 w-full text-red-600 hover:bg-red-50 rounded-xl transition-colors font-bold">
-            <LogOut size={20} /> Cerrar Sesión
-          </button>
-        </div>
-      </aside>
+      <Sidebar />
 
       {/* Contenido Principal - Ocupa todo el resto de la pantalla (flex-grow: 1) */}
       <main className="flex-1 flex flex-col h-screen bg-gray-50 min-w-0">
         {/* Header Superior - Ocupa el 100% de ancho sin restricciones */}
         <header className="bg-white h-20 border-b border-gray-200 flex items-center justify-between px-10 shrink-0 z-30 shadow-sm w-full">
-          <h2 className="text-2xl font-display font-black text-gray-800 tracking-tight">Generación de Datasets</h2>
+          <h2 className="text-2xl font-display font-black text-gray-800 tracking-tight text-uai-red">CAETI | Laboratorio de Ciencia de Datos</h2>
           <div className="flex items-center gap-6">
             <div className="text-right hidden sm:block">
               <p className="text-base font-black text-gray-800">{user?.nombre || 'Investigadora'}</p>
@@ -298,13 +250,13 @@ const SearchLaboratory: React.FC = () => {
           {/* GRILLA - Expandida totalmente hasta el final */}
           <div className="flex-1 min-h-0 bg-white mx-6 md:mx-10 mb-8 rounded-[2rem] shadow-2xl border border-gray-200 overflow-hidden flex flex-col border-t-8 border-t-uai-red">
             <div className="p-6 border-b border-gray-100 flex items-center justify-between shrink-0">
-              <h3 className="text-xl font-black text-gray-800 flex items-center gap-3">
+              <h3 className="text-xl font-black text-gray-800 flex items-center gap-3 uppercase tracking-tighter">
                 <CheckCircle className="text-green-500" size={24} /> 
-                Resultados del Repositorio
+                Resultados del Repositorio Integral
               </h3>
               {results.length > 0 && (
-                <span className="bg-uai-accent text-uai-red px-4 py-1 rounded-full text-xs font-black">
-                  {results.length} REGISTROS ENCONTRADOS
+                <span className="bg-uai-accent text-uai-red px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest">
+                  {results.length} REGISTROS
                 </span>
               )}
             </div>
@@ -322,7 +274,7 @@ const SearchLaboratory: React.FC = () => {
                 <table className="w-full text-left border-collapse min-w-[4000px]">
                   <thead className="sticky top-0 z-20 bg-white shadow-sm">
                     <tr className="bg-gray-100 border-b-2 border-gray-200">
-                      <th className="p-6 text-xs font-black text-gray-600 uppercase sticky left-0 bg-gray-100 z-30 w-20">Nro</th>
+                      <th className="p-6 text-xs font-black text-gray-600 uppercase sticky left-0 bg-gray-100 z-30 w-24 text-center">Nro</th>
                       <th className="p-6 text-xs font-black text-gray-800 uppercase sticky left-24 bg-gray-100 z-30 min-w-[500px]">Nombre del dataset</th>
                       <th className="p-6 text-xs font-black text-gray-600 uppercase min-w-[250px]">Área médica</th>
                       <th className="p-6 text-xs font-black text-gray-600 uppercase min-w-[250px]">Tipo de datos</th>
@@ -335,44 +287,44 @@ const SearchLaboratory: React.FC = () => {
                       <th className="p-6 text-xs font-black text-gray-600 uppercase min-w-[150px]">Cant. var</th>
                       <th className="p-6 text-xs font-black text-gray-600 uppercase min-w-[150px]">Año Pub</th>
                       <th className="p-6 text-xs font-black text-gray-600 uppercase min-w-[150px]">Año Act</th>
-                      <th className="p-8 text-sm font-black text-gray-600 uppercase min-w-[400px]">Link</th>
-                      <th className="p-8 text-sm font-black text-gray-600 uppercase min-w-[200px]">Idioma</th>
-                      <th className="p-8 text-sm font-black text-gray-600 uppercase min-w-[600px]">Breve descripción</th>
-                      <th className="p-8 text-sm font-black text-gray-600 uppercase min-w-[400px]">Propuesta / Objetivo</th>
-                      <th className="p-8 text-sm font-black text-gray-600 uppercase min-w-[350px]">Observaciones</th>
-                      <th className="p-8 text-sm font-black text-gray-600 uppercase min-w-[250px]">Responsable</th>
+                      <th className="p-6 text-xs font-black text-gray-600 uppercase min-w-[400px]">Link</th>
+                      <th className="p-6 text-xs font-black text-gray-600 uppercase min-w-[200px]">Idioma</th>
+                      <th className="p-6 text-xs font-black text-gray-600 uppercase min-w-[600px]">Breve descripción</th>
+                      <th className="p-6 text-xs font-black text-gray-600 uppercase min-w-[400px]">Propuesta / Objetivo</th>
+                      <th className="p-6 text-xs font-black text-gray-600 uppercase min-w-[350px]">Observaciones</th>
+                      <th className="p-6 text-xs font-black text-gray-600 uppercase min-w-[250px]">Responsable</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
                     {results.map((result) => (
                       <tr key={result.id} className="hover:bg-uai-accent/10 transition-colors group">
-                        <td className="p-6 text-lg font-black text-gray-400 sticky left-0 bg-white group-hover:bg-gray-50 z-10">{result.nro}</td>
+                        <td className="p-6 text-lg font-black text-gray-400 sticky left-0 bg-white group-hover:bg-gray-50 z-10 text-center">{result.nro}</td>
                         <td className="p-6 text-lg font-black text-uai-red sticky left-24 bg-white group-hover:bg-gray-50 z-10 shadow-[6px_0_15px_-4px_rgba(0,0,0,0.15)]">{result.titulo}</td>
                         <td className="p-6 text-lg font-bold text-gray-700">{result.area}</td>
                         <td className="p-6 text-lg text-gray-600 font-medium">{result.tipo}</td>
-                        <td className="p-6 text-lg">
-                          <span className="px-5 py-2 bg-uai-red text-white font-black rounded-2xl text-xs uppercase tracking-widest shadow-md">{result.fuente}</span>
+                        <td className="p-6 text-lg text-center">
+                          <span className="px-5 py-2 bg-uai-red text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-md">{result.fuente}</span>
                         </td>
                         <td className="p-6 text-lg text-gray-700 font-medium">{result.institucion}</td>
                         <td className="p-6 text-lg text-gray-600">{result.pais}</td>
-                        <td className="p-6 text-2xl text-gray-800 font-black font-mono bg-gray-50/50">{result.registros}</td>
+                        <td className="p-6 text-2xl text-gray-800 font-black font-mono bg-gray-50/50 text-center">{result.registros}</td>
                         <td className="p-6 text-lg text-gray-600">{result.formato}</td>
                         <td className="p-6 text-lg text-gray-700 leading-relaxed italic">{result.variables}</td>
-                        <td className="p-6 text-2xl text-gray-800 font-black font-mono bg-gray-50/50">{result.cant_variables}</td>
-                        <td className="p-6 text-lg text-gray-600">{result.año_pub}</td>
-                        <td className="p-6 text-lg text-uai-red font-black underline decoration-4 underline-offset-4">{result.año_act}</td>
-                        <td className="p-8 text-lg">
+                        <td className="p-6 text-2xl text-gray-800 font-black font-mono bg-gray-50/50 text-center">{result.cant_variables}</td>
+                        <td className="p-6 text-lg text-center text-gray-600">{result.año_pub}</td>
+                        <td className="p-6 text-lg text-uai-red font-black underline decoration-4 underline-offset-4 text-center">{result.año_act}</td>
+                        <td className="p-6 text-lg">
                           {result.url_original ? (
                             <a href={result.url_original} target="_blank" rel="noreferrer" className="text-blue-600 hover:text-blue-800 font-black underline break-all block" title={result.url_original}>
                               {result.url_original}
                             </a>
                           ) : '-'}
                         </td>
-                        <td className="p-8 text-lg text-gray-600 font-black">{result.idioma}</td>
-                        <td className="p-8 text-lg text-gray-600 leading-loose text-justify font-medium">{result.descripcion}</td>
-                        <td className="p-8 text-lg text-gray-700 bg-uai-accent/10 font-medium">{result.propuesta}</td>
-                        <td className="p-8 text-lg text-gray-500 italic">{result.observaciones}</td>
-                        <td className="p-8 text-lg font-black text-gray-800">{result.responsable}</td>
+                        <td className="p-6 text-lg text-gray-600 font-black text-center">{result.idioma}</td>
+                        <td className="p-6 text-lg text-gray-600 leading-loose text-justify font-medium">{result.descripcion}</td>
+                        <td className="p-6 text-lg text-gray-700 bg-uai-accent/10 font-medium">{result.propuesta}</td>
+                        <td className="p-6 text-lg text-gray-500 italic">{result.observaciones}</td>
+                        <td className="p-6 text-lg font-black text-gray-800 text-center">{result.responsable}</td>
                       </tr>
                     ))}
                   </tbody>
