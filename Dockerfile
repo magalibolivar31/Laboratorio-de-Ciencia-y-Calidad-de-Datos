@@ -1,5 +1,5 @@
 # USA UNA IMAGEN DE NODE ESTABLE
-FROM node:18-slim
+FROM node:20-slim
 
 # INSTALAR PYTHON Y DEPENDENCIAS DEL SISTEMA
 RUN apt-get update && apt-get install -y \
