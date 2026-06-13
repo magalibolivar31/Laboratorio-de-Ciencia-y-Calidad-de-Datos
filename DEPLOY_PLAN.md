@@ -2,13 +2,15 @@
 
 Este documento detalla la estrategia para desplegar el **Laboratorio de Ciencias de Datos** de forma automatizada utilizando **Dokploy** y **GitHub**.
 
+> **Nota:** Los archivos de configuración (`backend/Dockerfile` y `frontend/nixpacks.toml`) ya han sido creados y están listos en tu rama `FLORCITA`.
+
 ---
 
 ## 📋 Arquitectura de Despliegue
 
 El sistema se compone de tres piezas clave que deben convivir en Dokploy:
 1.  **Base de Datos:** PostgreSQL (Gestionada por Dokploy).
-2.  **Backend (API + Motor Python):** Contenedor Docker personalizado (Node.js + Python).
+2.  **Backend (API + Motor Python):** Contenedor Docker (Node.js + Python).
 3.  **Frontend (Web):** Sitio estático (Vite/React).
 
 ---
@@ -25,90 +27,65 @@ El sistema se compone de tres piezas clave que deben convivir en Dokploy:
 
 ## ⚙️ Fase 2: El Backend (API + Motor ETL)
 
-El Backend es el componente más complejo porque **necesita Node.js y Python** al mismo tiempo para que el robot funcione.
-
 ### 1. Crear el Servicio en Dokploy
-1.  Crea un nuevo **"Application"** apuntando a tu repositorio de GitHub y la rama `FLORCITA`.
-2.  **Root Directory:** `/backend`
-3.  **Build Type:** Selecciona **Dockerfile**.
+1.  Crea un nuevo **"Application"**.
+2.  Conecta tu GitHub y selecciona la rama `FLORCITA`.
+3.  **Root Directory:** `/backend`
+4.  **Build Type:** Selecciona **Dockerfile** (Dokploy detectará automáticamente el archivo `backend/Dockerfile`).
 
-### 2. Variables de Entorno (Environment Variables)
-Configura las siguientes llaves en el panel del Backend:
+### 2. Variables de Env (Environment Variables)
+Configura estas llaves en el panel de la Application del Backend:
 *   `DATABASE_URL`: (La URL que copiaste de la base de datos).
 *   `PORT`: `3001`
-*   `ZENODO_TOKEN`: Llave maestra.
-*   `KAGGLE_KEY`: Llave maestra.
-*   `HUGGINGFACE_TOKEN`: Llave maestra.
-*   `BACKEND_URL`: La URL pública que le asigne Dokploy al backend (ej: `https://api-laboratorio.tudominio.com`).
+*   `ZENODO_TOKEN`: Llave maestra del laboratorio.
+*   `KAGGLE_KEY`: Llave maestra del laboratorio.
+*   `HUGGINGFACE_TOKEN`: Llave maestra del laboratorio.
+*   `BACKEND_URL`: La URL pública que le asigne Dokploy al backend.
 
 ### 3. Volúmenes Persistentes
-Para que los archivos Excel no se borren cada vez que actualices el código:
-1.  En Dokploy, ve a **"Volumes"**.
-2.  Crea un montaje: `/exports` -> Carpeta interna del contenedor: `/app/exports`.
+Fundamental para no perder los archivos Excel:
+1.  En el servicio del Backend, ve a **"Volumes"**.
+2.  Crea un montaje: Nombre `uai-exports` -> Carpeta interna: `/app/exports`.
 
 ---
 
 ## 💻 Fase 3: El Frontend (Interfaz Web)
 
 1.  Crea una nueva **"Application"** en Dokploy.
-2.  **Root Directory:** `/frontend`
-3.  **Build Type:** Nixpacks (Dokploy lo detectará automáticamente como Vite/React).
-4.  **Variables de Entorno:**
-    *   `VITE_API_URL`: La URL pública de tu backend (ej: `https://api-laboratorio.tudominio.com/api`).
+2.  Conecta tu GitHub y selecciona la rama `FLORCITA`.
+3.  **Root Directory:** `/frontend`
+4.  **Build Type:** Nixpacks (usará el archivo `frontend/nixpacks.toml`).
+5.  **Variables de Entorno:**
+    *   `VITE_API_URL`: La URL pública de tu backend + `/api` (ej: `https://api-uai.com/api`).
 
 ---
 
-## 🐳 Dockerfile Recomendado para el Backend
+## 🏁 Fase 4: Configuración Inicial (Post-Deploy)
 
-Para que el backend funcione, crea un archivo llamado `Dockerfile` dentro de la carpeta `/backend`:
+Una vez que el backend esté "Online" por primera vez, debés cargar la estructura de la base de datos:
 
-```dockerfile
-# Usa una imagen de Node.js estable
-FROM node:18-slim
-
-# Instalar Python y dependencias del sistema
-RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
-    && rm -rf /var/lib/apt/lists/*
-
-# Crear carpeta de la app
-WORKDIR /app
-
-# Instalar dependencias de Python
-COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt --break-system-packages
-
-# Instalar dependencias de Node
-COPY package*.json ./
-RUN npm install
-
-# Copiar el código del backend y el script de python
-COPY . .
-COPY ../python/etl.py ./python/etl.py
-
-# Exponer puerto
-EXPOSE 3001
-
-# Ejecutar migraciones y arrancar
-CMD npx prisma generate && npx prisma migrate deploy && npm start
-```
+1.  En Dokploy, entra a la Application del **Backend**.
+2.  Ve a la pestaña **"Console"** (Terminal).
+3.  Ejecuta este comando para crear las tablas:
+    ```bash
+    npx prisma migrate deploy
+    ```
+4.  (Opcional) Carga los usuarios iniciales:
+    ```bash
+    npx prisma db seed
+    ```
 
 ---
 
 ## 🔄 Automatización (CI/CD)
 
-Al conectar GitHub con Dokploy:
-1.  Cada vez que hagas un **`git push origin FLORCITA`**, Dokploy detectará el cambio.
-2.  Reconstruirá el contenedor del Backend (instalando Python y Node).
-3.  Reconstruirá la Web.
-4.  El sistema estará actualizado automáticamente.
+A partir de ahora, cada vez que hagas un **`git push origin FLORCITA`**, Dokploy actualizará automáticamente tanto el servidor como la web.
 
 ---
 
-## ✅ Checklist de Verificación
-- [ ] Base de datos PostgreSQL activa.
-- [ ] Backend conectado a la DB y con Python instalado.
-- [ ] Carpeta `/exports` con volumen persistente.
-- [ ] Frontend apuntando a la URL correcta del Backend.
-- [ ] SSL activado en ambos dominios (Dokploy lo hace con Let's Encrypt).
+## ✅ Checklist Final
+- [ ] PostgreSQL creado y URL copiada.
+- [ ] Backend configurado como Dockerfile.
+- [ ] Volumen `/app/exports` creado.
+- [ ] Frontend configurado como Nixpacks.
+- [ ] `migrate deploy` ejecutado desde la consola de Dokploy.
