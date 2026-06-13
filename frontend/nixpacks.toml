@@ -1,0 +1,9 @@
+[phases.setup]
+nixpkgsArchive = "ba63364654942910793796ecb44081075775836a"
+pkgs = ["nodejs_18"]
+
+[phases.build]
+cmds = ["npm install", "npm run build"]
+
+[start]
+cmd = "npm run preview -- --host 0.0.0.0"

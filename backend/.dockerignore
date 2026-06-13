@@ -1,0 +1,19 @@
+# [ Node.js ]
+node_modules
+npm-debug.log
+dist
+
+# [ Python ]
+__pycache__
+*.pyc
+venv
+.venv
+.env
+
+# [ Git ]
+.git
+.gitignore
+
+# [ OS ]
+.DS_Store
+Thumbs.db
