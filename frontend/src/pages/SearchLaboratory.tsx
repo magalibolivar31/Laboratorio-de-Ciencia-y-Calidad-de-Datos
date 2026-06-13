@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
+import { Search, Database, Download, Loader2, Play, CheckCircle, AlertCircle, Key, BookOpen, ChevronDown, Plus, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../lib/api';
 

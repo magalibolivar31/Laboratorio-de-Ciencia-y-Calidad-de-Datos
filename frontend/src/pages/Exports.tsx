@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import { useNavigate } from 'react-router-dom';
+import { Database, FileSpreadsheet, Download } from 'lucide-react';
 import api from '../lib/api';
 
 interface ExportItem {
@@ -72,12 +73,15 @@ const Exports: React.FC = () => {
               <tbody className="divide-y divide-gray-100">
                 {exports.map((item) => (
                   <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="p-6 font-bold text-gray-800">{item.nombre_archivo}</td>
-                    <td className="p-6 text-gray-600">{item.fecha}</td>
-                    <td className="p-6 text-gray-600">{item.tamaño}</td>
+                    <td className="p-6 font-bold text-gray-800 flex items-center gap-3">
+                      <FileSpreadsheet className="text-green-600" size={20} />
+                      {item.nombre_archivo}
+                    </td>
+                    <td className="p-6 text-gray-600 font-medium">{item.fecha}</td>
+                    <td className="p-6 text-gray-600 font-mono text-sm">{item.tamaño}</td>
                     <td className="p-6 text-center">
-                      <button className="bg-gray-900 text-white px-6 py-2 rounded-xl font-bold hover:bg-black transition-all">
-                        Descargar
+                      <button className="bg-gray-900 text-white px-6 py-2 rounded-xl font-black text-sm hover:bg-black transition-all flex items-center gap-2 mx-auto">
+                        <Download size={16} /> DESCARGAR
                       </button>
                     </td>
                   </tr>
