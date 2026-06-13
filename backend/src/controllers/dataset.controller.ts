@@ -77,7 +77,7 @@ export const searchDatasets = async (req: Request, res: Response) => {
       const filename = match ? match[1] : null;
       const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
 
-      let realData = [];
+      let realData: any[] = [];
       if (filename) {
         try {
           const filePath = path.join(exportsPath, filename);
