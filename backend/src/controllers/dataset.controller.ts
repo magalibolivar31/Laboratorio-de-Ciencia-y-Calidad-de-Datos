@@ -15,7 +15,19 @@ export const searchDatasets = async (req: any, res: Response) => {
 
   try {
     const pythonPath = process.env.PYTHON_PATH || 'python';
-    const rootDir = path.resolve(__dirname, '../../../');
+    // Sube desde __dirname hasta encontrar el directorio que contiene python/etl.py.
+    // Funciona tanto en dev (src/controllers/) como en prod Docker (dist/controllers/).
+    const findRoot = (start: string): string => {
+      let dir = start;
+      for (let i = 0; i < 6; i++) {
+        if (fs.existsSync(path.join(dir, 'python', 'etl.py'))) return dir;
+        const parent = path.dirname(dir);
+        if (parent === dir) break;
+        dir = parent;
+      }
+      return start;
+    };
+    const rootDir = findRoot(__dirname);
     const scriptPath = path.join(rootDir, 'python/etl.py');
     const exportsPath = path.join(rootDir, 'exports');
 

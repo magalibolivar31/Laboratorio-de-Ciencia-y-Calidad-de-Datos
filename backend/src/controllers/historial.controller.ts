@@ -88,7 +88,17 @@ export const saveExportacion = async (req: any, res: Response) => {
     if (publica && !descripcion?.trim()) return res.status(400).json({ error: 'La descripción es obligatoria para exportaciones públicas.' });
 
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
-    const rootDir = path.resolve(__dirname, '../../../');
+    const findRoot = (start: string): string => {
+      let dir = start;
+      for (let i = 0; i < 6; i++) {
+        if (fs.existsSync(path.join(dir, 'exports'))) return dir;
+        const parent = path.dirname(dir);
+        if (parent === dir) break;
+        dir = parent;
+      }
+      return start;
+    };
+    const rootDir = findRoot(__dirname);
     const filePath = path.join(rootDir, 'exports', filename);
 
     let tamanio: number | null = null;
