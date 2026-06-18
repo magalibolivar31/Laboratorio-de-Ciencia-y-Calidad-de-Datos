@@ -44,4 +44,4 @@ EXPOSE 3001
 
 # 8. ARRANCAR: Aplicar migraciones y encender servidor
 # Prisma migrate deploy aplica las migraciones pendientes en producción
-CMD npx prisma migrate deploy && npm start
+CMD npx prisma migrate deploy && npx prisma db seed && npm start
