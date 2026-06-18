@@ -27,6 +27,8 @@ const Admin: React.FC = () => {
   const [fTipo, setFTipo] = useState('API');
   const [fUrl, setFUrl] = useState('');
   const [fDesc, setFDesc] = useState('');
+  const [fKey, setFKey] = useState('');
+  const [fHasKey, setFHasKey] = useState(false);
 
   useEffect(() => {
     const userRaw = localStorage.getItem('user');
@@ -84,20 +86,23 @@ const Admin: React.FC = () => {
   const handleSaveFuente = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const payload: any = { nombre: fNombre, tipo: fTipo, url_base: fUrl, descripcion: fDesc };
+      if (fKey.trim()) payload.api_key = fKey.trim();
       if (editFuente) {
-        await api.put(`/fuentes/${editFuente.id}`, { nombre: fNombre, tipo: fTipo, url_base: fUrl, descripcion: fDesc });
+        await api.put(`/fuentes/${editFuente.id}`, payload);
       } else {
-        await api.post('/fuentes', { nombre: fNombre, tipo: fTipo, url_base: fUrl, descripcion: fDesc });
+        await api.post('/fuentes', payload);
       }
       setShowFuenteForm(false); setEditFuente(null);
-      setFNombre(''); setFTipo('API'); setFUrl(''); setFDesc('');
+      setFNombre(''); setFTipo('API'); setFUrl(''); setFDesc(''); setFKey(''); setFHasKey(false);
       loadTab('fuentes');
     } catch { alert('Error al guardar fuente'); }
   };
 
-  const openEditFuente = (f: Fuente) => {
+  const openEditFuente = (f: Fuente & { api_key?: string | null }) => {
     setEditFuente(f); setFNombre(f.nombre); setFTipo(f.tipo);
     setFUrl(f.url_base || ''); setFDesc(f.descripcion || '');
+    setFKey(''); setFHasKey(!!f.api_key);
     setShowFuenteForm(true);
   };
 
@@ -221,6 +226,24 @@ const Admin: React.FC = () => {
                         <div>
                           <label className="text-xs font-black text-gray-400 uppercase ml-1">Descripción</label>
                           <input type="text" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl font-medium focus:border-uai-red outline-none mt-1" value={fDesc} onChange={e => setFDesc(e.target.value)} />
+                        </div>
+                        <div className="md:col-span-2">
+                          <label className="text-xs font-black text-gray-400 uppercase ml-1">
+                            API Key {fHasKey && <span className="text-green-600 font-black">— ya tiene una guardada</span>}
+                          </label>
+                          <input
+                            type="password"
+                            autoComplete="new-password"
+                            placeholder={fHasKey ? 'Dejá vacío para mantener la key actual' : 'Token / API Key (opcional)'}
+                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl font-medium focus:border-uai-red outline-none mt-1"
+                            value={fKey}
+                            onChange={e => setFKey(e.target.value)}
+                          />
+                          <p className="text-[10px] text-gray-400 mt-1 ml-1">
+                            {fHasKey
+                              ? 'Ingresá una nueva key para reemplazar la existente. Si lo dejás en blanco, la key actual no cambia.'
+                              : 'Se usará para autenticar las búsquedas en esta fuente.'}
+                          </p>
                         </div>
                         <div className="md:col-span-2">
                           <button type="submit" className="bg-uai-red text-white px-8 py-3 rounded-xl font-black hover:bg-red-800 transition-all">

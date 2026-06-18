@@ -94,6 +94,7 @@ model FuenteDatos {
   tipo        String   @db.VarChar(50)
   url_base    String?
   descripcion String?
+  api_key     String?
   activa      Boolean  @default(true)
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt

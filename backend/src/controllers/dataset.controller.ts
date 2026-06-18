@@ -35,7 +35,25 @@ export const searchDatasets = async (req: any, res: Response) => {
       fs.mkdirSync(exportsPath, { recursive: true });
     }
 
+    // Mapeo de nombre de fuente → variable de entorno que usa etl.py
+    const FUENTE_ENV: Record<string, string> = {
+      'Zenodo': 'ZENODO_TOKEN',
+      'Kaggle': 'KAGGLE_KEY',
+      'Hugging Face': 'HUGGINGFACE_TOKEN',
+    };
+
     const env: any = { ...process.env, PYTHONIOENCODING: 'utf-8' };
+
+    // Sobrescribir con las keys guardadas en la BD (tienen prioridad sobre .env)
+    try {
+      const fuentes = await prisma.fuenteDatos.findMany({ where: { activa: true } });
+      for (const f of fuentes) {
+        const envVar = FUENTE_ENV[f.nombre];
+        if (envVar && (f as any).api_key) env[envVar] = (f as any).api_key;
+      }
+    } catch {}
+
+    // Si el usuario pasó una key personal, tiene la mayor prioridad
     if (apiKey) {
       env.ZENODO_TOKEN = apiKey;
       env.KAGGLE_KEY = apiKey;
