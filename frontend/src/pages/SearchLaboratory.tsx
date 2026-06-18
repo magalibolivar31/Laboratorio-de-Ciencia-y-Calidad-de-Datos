@@ -3,7 +3,8 @@ import Sidebar from '../components/Sidebar';
 import {
   Search, Database, Download, Loader2, Key,
   BookOpen, Plus, X, Edit, Trash2, Clock,
-  ChevronDown, ArrowRight, ExternalLink, SlidersHorizontal, Maximize2
+  ChevronDown, ArrowRight, ExternalLink, SlidersHorizontal, Maximize2,
+  ToggleLeft, ToggleRight
 } from 'lucide-react';
 import api from '../lib/api';
 
@@ -15,7 +16,11 @@ interface LabResult {
   idioma: string; descripcion: string; propuesta: string;
   observaciones: string; responsable: string; archivo_url?: string;
 }
-interface SavedToken { id: number; servicio: string; api_key_cifrada: string }
+interface SavedToken {
+  id: number; servicio: string; api_key_cifrada: string | null;
+  usuario_api?: string | null; activa: boolean; fuente_id?: number | null;
+}
+interface Fuente { id: number; nombre: string; tipo: string; descripcion?: string; activa: boolean; }
 interface UserInfo { nombre: string; email: string; rol?: string }
 interface Diccionario { id: number; nombre: string; keywords: { keyword: { palabra: string } }[] }
 interface HistorialItem { id: number; keywords: string; fuente: string; resultados: number; created_at: string }
@@ -824,71 +829,183 @@ const SearchLaboratory: React.FC = () => {
   );
 };
 
-/* ── Modal APIs ── */
+/* ── Modal Mis Conexiones API ── */
+const NECESITA_USUARIO: Record<string, boolean> = { 'Kaggle': true };
+
 const ApiManagerModal: React.FC<{
   isOpen: boolean; onClose: () => void; tokens: SavedToken[]; onRefresh: () => void;
 }> = ({ isOpen, onClose, tokens, onRefresh }) => {
-  const [name, setName] = useState('');
-  const [key, setKey]   = useState('');
-  const [editId, setEditId] = useState<number | null>(null);
+  const [fuentes, setFuentes] = useState<Fuente[]>([]);
+  const [editando, setEditando] = useState<number | null>(null); // fuente.id
+  const [formKey, setFormKey] = useState('');
+  const [formUsuario, setFormUsuario] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [togglingId, setTogglingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (isOpen) api.get('/fuentes').then(r => setFuentes(r.data.filter((f: Fuente) => f.activa))).catch(() => {});
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
-  const submit = async (e: React.FormEvent) => {
+  const tokenDe = (f: Fuente) => tokens.find(t => t.servicio === f.nombre || t.fuente_id === f.id) || null;
+
+  const abrirEdicion = (f: Fuente) => {
+    const t = tokenDe(f);
+    setEditando(f.id); setFormKey(''); setFormUsuario(t?.usuario_api || '');
+  };
+
+  const handleSave = async (e: React.FormEvent, f: Fuente) => {
     e.preventDefault();
+    const t = tokenDe(f);
+    if (!formKey.trim() && !t) return;
+    setSaving(true);
     try {
-      editId ? await api.put(`/tokens/${editId}`, { servicio: name, api_key: key })
-             : await api.post('/tokens', { servicio: name, api_key: key });
-      setName(''); setKey(''); setEditId(null); onRefresh();
-    } catch { alert('Error al guardar'); }
+      const payload: any = { servicio: f.nombre, fuente_id: f.id, usuario_api: formUsuario.trim() || null };
+      if (formKey.trim()) payload.api_key = formKey.trim();
+      t ? await api.put(`/tokens/${t.id}`, payload) : await api.post('/tokens', payload);
+      setEditando(null); setFormKey(''); setFormUsuario('');
+      onRefresh();
+    } catch {} finally { setSaving(false); }
+  };
+
+  const handleToggle = async (t: SavedToken) => {
+    setTogglingId(t.id);
+    try { await api.patch(`/tokens/${t.id}/toggle`); onRefresh(); }
+    catch {} finally { setTogglingId(null); }
+  };
+
+  const handleDelete = async (t: SavedToken) => {
+    if (!confirm(`¿Eliminar la conexión con ${t.servicio}?`)) return;
+    setDeletingId(t.id);
+    try { await api.delete(`/tokens/${t.id}`); onRefresh(); }
+    catch {} finally { setDeletingId(null); }
   };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
-        <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-uai-red text-white">
+      <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh]">
+
+        {/* Header */}
+        <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-uai-red text-white shrink-0">
           <div>
             <h3 className="text-xl font-black uppercase">Mis Conexiones API</h3>
-            <p className="text-xs font-bold opacity-70 mt-0.5">Zenodo · Kaggle · Hugging Face</p>
+            <p className="text-xs font-bold opacity-70 mt-0.5">Credenciales personales por fuente</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full"><X size={22} /></button>
+          <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition-all"><X size={22} /></button>
         </div>
-        <div className="p-6 overflow-y-auto space-y-6">
-          <form onSubmit={submit} className="bg-gray-50 p-5 rounded-2xl border border-gray-200 space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-black text-gray-400 uppercase ml-1 block mb-1">Nombre</label>
-                <input type="text" placeholder="Ej: Mi Zenodo" className="w-full p-3 bg-white border border-gray-200 rounded-xl font-bold focus:border-uai-red outline-none" value={name} onChange={e => setName(e.target.value)} required />
-              </div>
-              <div>
-                <label className="text-xs font-black text-gray-400 uppercase ml-1 block mb-1">Token / API Key</label>
-                <input type="password" placeholder="Pegá el token..." className="w-full p-3 bg-white border border-gray-200 rounded-xl font-bold focus:border-uai-red outline-none" value={key} onChange={e => setKey(e.target.value)} required />
-              </div>
-            </div>
-            <button type="submit" className="w-full bg-uai-red text-white py-3 rounded-xl font-black hover:bg-red-800 transition-all">
-              {editId ? 'ACTUALIZAR' : '+ GUARDAR API'}
-            </button>
-          </form>
-          <div className="space-y-3">
-            <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Guardadas ({tokens.length})</p>
-            {tokens.length === 0
-              ? <p className="text-center py-8 text-gray-300 italic text-sm">No tenés APIs guardadas.</p>
-              : tokens.map(t => (
-                <div key={t.id} className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-2xl hover:border-uai-red transition-all">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-uai-accent text-uai-red rounded-xl"><Key size={16} /></div>
-                    <div>
-                      <p className="font-black text-gray-800 text-sm uppercase">{t.servicio}</p>
-                      <p className="text-xs text-gray-400 font-mono">••••••••••••••</p>
+
+        {/* Info */}
+        <div className="px-6 py-3 bg-blue-50 border-b border-blue-100 shrink-0">
+          <p className="text-xs text-blue-700 font-medium">
+            Por defecto se usan las credenciales de la plataforma. Si configurás las tuyas, podés elegir usarlas en reemplazo.
+          </p>
+        </div>
+
+        <div className="overflow-y-auto flex-1 p-6 space-y-3">
+          {fuentes.length === 0 && (
+            <p className="text-center py-8 text-gray-400 italic text-sm">Cargando fuentes disponibles...</p>
+          )}
+          {fuentes.map(f => {
+            const token = tokenDe(f);
+            const configurada = !!token;
+            const activa = token?.activa ?? false;
+            const abierta = editando === f.id;
+
+            return (
+              <div key={f.id} className={`rounded-2xl border-2 transition-all ${configurada && activa ? 'border-green-200 bg-green-50/40' : 'border-gray-100 bg-white'}`}>
+                <div className="p-4 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className={`p-2 rounded-xl shrink-0 ${configurada && activa ? 'bg-green-100' : configurada ? 'bg-gray-100' : 'bg-gray-50'}`}>
+                      <Key size={16} className={configurada && activa ? 'text-green-600' : configurada ? 'text-gray-400' : 'text-gray-300'} />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-black text-gray-800 text-sm">{f.nombre}</p>
+                        {configurada && activa && <span className="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-black rounded-full">Mis credenciales</span>}
+                        {configurada && !activa && <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-[10px] font-black rounded-full">Credenciales plataforma</span>}
+                        {!configurada && <span className="px-2 py-0.5 bg-blue-50 text-blue-500 text-[10px] font-black rounded-full">Plataforma</span>}
+                      </div>
+                      {token?.usuario_api && <p className="text-[11px] text-gray-400 mt-0.5 font-mono">@{token.usuario_api}</p>}
                     </div>
                   </div>
-                  <div className="flex gap-1">
-                    <button onClick={() => { setName(t.servicio); setKey(t.api_key_cifrada); setEditId(t.id); }} className="p-2 text-gray-300 hover:text-uai-red hover:bg-gray-50 rounded-lg"><Edit size={15} /></button>
-                    <button onClick={async () => { if (!confirm('¿Eliminar?')) return; try { await api.delete(`/tokens/${t.id}`); onRefresh(); } catch {} }} className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={15} /></button>
+
+                  <div className="flex items-center gap-1 shrink-0">
+                    {configurada && (
+                      <>
+                        <button
+                          onClick={() => handleToggle(token!)}
+                          disabled={togglingId === token!.id}
+                          title={activa ? 'Cambiar a credenciales de la plataforma' : 'Usar mis credenciales'}
+                          className={`p-1.5 rounded-lg transition-all ${activa ? 'text-green-600 hover:bg-green-100' : 'text-gray-300 hover:bg-gray-100'}`}
+                        >
+                          {togglingId === token!.id ? <Loader2 size={16} className="animate-spin" /> : activa ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
+                        </button>
+                        <button onClick={() => abierta ? setEditando(null) : abrirEdicion(f)} className="p-1.5 text-gray-400 hover:text-uai-red hover:bg-uai-accent rounded-lg transition-all">
+                          <Edit size={15} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(token!)}
+                          disabled={deletingId === token!.id}
+                          className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                        >
+                          {deletingId === token!.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                        </button>
+                      </>
+                    )}
+                    {!configurada && (
+                      <button onClick={() => abrirEdicion(f)} className="flex items-center gap-1 px-3 py-1.5 bg-uai-red text-white rounded-lg font-black text-xs hover:bg-red-800 transition-all">
+                        <Plus size={12} /> Configurar
+                      </button>
+                    )}
                   </div>
                 </div>
-              ))
-            }
-          </div>
+
+                {/* Form inline */}
+                {abierta && (
+                  <form onSubmit={e => handleSave(e, f)} className="px-4 pb-4 pt-0 space-y-3 border-t border-gray-100 mt-0">
+                    <div className="pt-3 space-y-2">
+                      <div>
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                          API Key / Token {!token && <span className="text-uai-red">*</span>}
+                        </label>
+                        <input
+                          type="password" autoComplete="new-password"
+                          placeholder={token ? 'Dejá vacío para mantener la key actual' : 'Pegá tu API Key aquí...'}
+                          className="w-full mt-1 p-3 bg-white border-2 border-gray-200 rounded-xl text-sm font-medium focus:border-uai-red outline-none"
+                          value={formKey} onChange={e => setFormKey(e.target.value)}
+                          required={!token}
+                        />
+                      </div>
+                      {NECESITA_USUARIO[f.nombre] && (
+                        <div>
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Usuario <span className="text-uai-red">*</span></label>
+                          <input
+                            type="text" placeholder={`Tu usuario de ${f.nombre}`}
+                            className="w-full mt-1 p-3 bg-white border-2 border-gray-200 rounded-xl text-sm font-medium focus:border-uai-red outline-none"
+                            value={formUsuario} onChange={e => setFormUsuario(e.target.value)}
+                            required
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <button type="submit" disabled={saving}
+                        className="flex items-center gap-1.5 bg-uai-red text-white px-4 py-2 rounded-xl font-black text-xs hover:bg-red-800 transition-all disabled:opacity-50">
+                        {saving ? <Loader2 size={12} className="animate-spin" /> : null}
+                        {token ? 'Actualizar' : 'Guardar'}
+                      </button>
+                      <button type="button" onClick={() => { setEditando(null); setFormKey(''); setFormUsuario(''); }}
+                        className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl font-black text-xs hover:bg-gray-200 transition-all">
+                        Cancelar
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
