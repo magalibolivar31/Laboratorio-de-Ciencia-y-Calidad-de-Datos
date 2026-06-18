@@ -1,96 +1,98 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, BookOpen, ShieldCheck, Cpu } from 'lucide-react';
+import { ArrowRight, Database, Cpu, ShieldCheck, Search, BarChart3 } from 'lucide-react';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen w-full relative overflow-hidden flex flex-col items-center justify-center">
-      
-      {/* SELLO INSTITUCIONAL SUPERIOR (FIJO) */}
-      <div className="absolute top-8 left-8 z-[70] animate-fade-in">
-        <div 
-          onClick={() => navigate('/')}
-          className="bg-white p-2 md:p-3 rounded-2xl shadow-2xl border-2 border-uai-red/10 cursor-pointer hover:scale-105 transition-all flex items-center gap-4"
-        >
-          <img src="/logo.png" alt="Logo UAI" className="h-10 md:h-12 object-contain" />
-          <div className="hidden sm:block border-l-2 border-gray-100 pl-4 pr-2 text-left">
-            <p className="text-[10px] font-black text-uai-red uppercase leading-none tracking-tight">Universidad Abierta</p>
-            <p className="text-[10px] font-black text-uai-red uppercase leading-none tracking-tight">Interamericana</p>
-          </div>
-        </div>
-      </div>
 
-      {/* IMAGEN DE FONDO CON DESENFOQUE SUTIL */}
-      <div 
-        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat transition-transform duration-[20s] scale-105 blur-[3px]"
+      {/* Fondo */}
+      <div
+        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat scale-105 blur-[2px]"
         style={{ backgroundImage: "url('/fondo.png')" }}
       />
-      
-      {/* CAPA DE OSCURECIMIENTO */}
-      <div className="absolute inset-0 z-10 bg-black/60 bg-gradient-to-br from-black/80 via-transparent to-uai-red/20" />
+      <div className="absolute inset-0 z-10 bg-gradient-to-br from-black/85 via-black/65 to-uai-red/30" />
 
-      {/* CONTENIDO PRINCIPAL EN TARJETA GLASS */}
-      <div className="relative z-20 container mx-auto px-6 flex flex-col items-center">
-        <div className="bg-black/40 backdrop-blur-xl p-10 md:p-16 rounded-[4rem] border border-white/10 shadow-2xl flex flex-col items-center text-center space-y-10 max-w-5xl">
-          
-          {/* LOGO CENTRAL */}
-          <div className="space-y-4 animate-fade-in-down">
-            <div className="flex flex-col items-center gap-4">
-              <div className="bg-white p-4 md:p-6 rounded-[2.5rem] shadow-2xl border-4 border-uai-accent/30 overflow-hidden">
-                <img src="/logo.png" alt="UAI CAETI" className="h-20 md:h-28 object-contain" />
-              </div>
-              <div className="text-white mt-8 text-center space-y-2 w-full">
-                <h1 className="text-6xl md:text-9xl font-black tracking-tighter leading-none text-uai-accent">
-                  CAETI
-                </h1>
-                <p className="text-xl md:text-3xl font-bold uppercase tracking-[0.4em] text-white opacity-90">
-                  Laboratorio de Calidad y Ciencia de Datos
-                </p>
-              </div>
-            </div>
+      {/* Sello UAI top-left */}
+      <div className="absolute top-7 left-7 z-30">
+        <div className="bg-white/95 backdrop-blur px-4 py-2.5 rounded-2xl shadow-xl border border-white/30 flex items-center gap-3">
+          <img src="/logo.png" alt="UAI" className="h-9 object-contain" />
+          <div className="border-l border-gray-200 pl-3 hidden sm:block">
+            <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest leading-tight">Universidad Abierta</p>
+            <p className="text-[9px] font-black text-uai-red uppercase tracking-widest leading-tight">Interamericana</p>
           </div>
-
-          {/* DESCRIPCIÓN */}
-          <div className="max-w-3xl animate-fade-in-up delay-200">
-            <h2 className="text-3xl md:text-4xl font-black text-white leading-tight">
-              Análisis, calidad y generación de <span className="text-uai-accent underline decoration-4 decoration-uai-accent/30 italic">datasets científicos</span> para investigación avanzada.
-            </h2>
-          </div>
-
-          {/* BOTÓN DE ACCESO */}
-          <div className="animate-fade-in-up delay-500">
-            <button 
-              onClick={() => navigate('/login')}
-              className="group bg-uai-red text-white px-12 py-6 rounded-3xl font-black text-2xl flex items-center gap-4 hover:bg-red-800 transition-all shadow-[0_20px_50px_rgba(128,0,32,0.4)] hover:-translate-y-2 active:scale-95 border-b-4 border-red-950"
-            >
-              INGRESAR AL LABORATORIO
-              <ArrowRight className="group-hover:translate-x-2 transition-transform" size={28} />
-            </button>
-          </div>
-        </div>
-
-        {/* CARACTERÍSTICAS INFERIORES */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 pt-16 animate-fade-in delay-700">
-          {[
-            { icon: <BookOpen />, text: "Repositorio Público" },
-            { icon: <Cpu />, text: "Procesamiento IA" },
-            { icon: <ShieldCheck />, text: "Datos Certificados" }
-          ].map((item, i) => (
-            <div key={i} className="flex items-center gap-3 text-white font-bold uppercase tracking-widest text-sm bg-uai-red/40 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/5">
-              <div className="p-2 bg-white/10 rounded-lg">{item.icon}</div>
-              {item.text}
-            </div>
-          ))}
         </div>
       </div>
 
-      {/* TEXTO DECORATIVO INFERIOR */}
-      <div className="absolute bottom-10 left-10 z-20 hidden lg:block">
-        <p className="text-white/10 font-black text-8xl opacity-10 select-none uppercase">
-          CAETI LAB
+      {/* Contenido principal */}
+      <div className="relative z-20 w-full max-w-4xl mx-auto px-6 flex flex-col items-center">
+
+        {/* Card glassmorphism */}
+        <div className="w-full bg-white/[0.07] backdrop-blur-2xl rounded-[3rem] border border-white/10 shadow-2xl px-10 py-14 md:px-16 md:py-16 flex flex-col items-center text-center gap-8">
+
+          {/* Badge institución */}
+          <div className="flex items-center gap-2 bg-uai-red/20 border border-uai-red/30 backdrop-blur px-5 py-2 rounded-full">
+            <span className="w-2 h-2 bg-uai-accent rounded-full animate-pulse" />
+            <span className="text-xs font-black text-uai-accent uppercase tracking-[0.2em]">UAI · CAETI · Investigación</span>
+          </div>
+
+          {/* Nombre del laboratorio */}
+          <div className="space-y-3">
+            <h1 className="text-4xl md:text-6xl font-black text-white leading-tight tracking-tight">
+              Laboratorio de
+              <span className="block text-uai-accent">Calidad y Ciencia</span>
+              <span className="block text-white/90">de Datos</span>
+            </h1>
+            <p className="text-sm font-bold text-white/40 uppercase tracking-[0.3em]">
+              Centro de Altos Estudios en Tecnología Informática
+            </p>
+          </div>
+
+          {/* Descripción */}
+          <p className="text-lg md:text-xl text-white/70 font-medium max-w-xl leading-relaxed">
+            Plataforma institucional para la búsqueda, análisis y generación de
+            <span className="text-white font-bold"> datasets científicos </span>
+            de calidad para investigación avanzada.
+          </p>
+
+          {/* CTA */}
+          <button
+            onClick={() => navigate('/login')}
+            className="group bg-uai-red hover:bg-red-800 text-white px-10 py-5 rounded-2xl font-black text-lg flex items-center gap-3 transition-all shadow-[0_10px_40px_rgba(180,0,0,0.4)] hover:-translate-y-1 active:scale-95 border-b-4 border-red-950"
+          >
+            INGRESAR AL LABORATORIO
+            <ArrowRight className="group-hover:translate-x-1.5 transition-transform" size={22} />
+          </button>
+
+          {/* Features */}
+          <div className="grid grid-cols-3 gap-3 w-full pt-2">
+            {[
+              { icon: <Database size={16} />, label: 'Repositorio Científico' },
+              { icon: <Search size={16} />, label: 'Búsqueda Multifuente' },
+              { icon: <BarChart3 size={16} />, label: 'Calidad de Datos' },
+              { icon: <Cpu size={16} />, label: 'Motor ETL con IA' },
+              { icon: <ShieldCheck size={16} />, label: 'Acceso Seguro' },
+              { icon: <ArrowRight size={16} />, label: 'Exportación Excel' },
+            ].map((f, i) => (
+              <div key={i} className="flex flex-col items-center gap-1.5 bg-white/5 border border-white/8 rounded-xl px-3 py-3 text-center">
+                <div className="text-uai-accent">{f.icon}</div>
+                <span className="text-[10px] font-black text-white/60 uppercase tracking-wider leading-tight">{f.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Footer institucional */}
+        <p className="mt-8 text-white/20 text-xs font-bold uppercase tracking-widest text-center">
+          Universidad Abierta Interamericana · CAETI · Av. Montes de Oca 745, CABA
         </p>
+      </div>
+
+      {/* Watermark decorativo */}
+      <div className="absolute bottom-6 right-8 z-20 hidden lg:block select-none pointer-events-none">
+        <p className="text-white/[0.04] font-black text-9xl uppercase">CAETI</p>
       </div>
     </div>
   );
