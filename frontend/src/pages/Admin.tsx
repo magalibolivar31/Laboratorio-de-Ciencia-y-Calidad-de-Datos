@@ -241,8 +241,8 @@ const Admin: React.FC = () => {
                           />
                           <p className="text-[10px] text-gray-400 mt-1 ml-1">
                             {fHasKey
-                              ? 'Ingresá una nueva key para reemplazar la existente. Si lo dejás en blanco, la key actual no cambia.'
-                              : 'Se usará para autenticar las búsquedas en esta fuente.'}
+                              ? 'Para actualizar el token, ingresá el nuevo valor y guardá. Si lo dejás vacío, el token actual se mantiene sin cambios.'
+                              : 'Opcional. Si esta fuente requiere autenticación, pegá aquí el token o API Key que usará la plataforma para todos los usuarios.'}
                           </p>
                         </div>
                         <div className="md:col-span-2">
