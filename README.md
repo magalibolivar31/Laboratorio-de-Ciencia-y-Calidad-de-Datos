@@ -1,4 +1,4 @@
-# UAI | CAETI - Laboratorio de Ciencias de Datos
+# UAI | CAETI - Laboratorio de Calidad y Ciencia de Datos
 
 ![Institución](https://img.shields.io/badge/Institución-UAI-red)
 ![Centro](https://img.shields.io/badge/Centro-CAETI-black)
@@ -75,6 +75,6 @@ El sistema genera reportes con los siguientes campos:
 ---
 
 ## 🏛️ Créditos
-**Laboratorio de Ciencias de Datos - CAETI**  
+**Laboratorio de Calidad y Ciencia de Datos - CAETI**  
 *Universidad Abierta Interamericana*  
 Investigadora Principal: **Flor Gomez**

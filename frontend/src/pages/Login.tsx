@@ -33,7 +33,7 @@ const Login: React.FC = () => {
         {/* Lado Izquierdo: Branding / Imagen */}
         <div className="md:w-1/2 bg-uai-red p-12 flex flex-col justify-center text-white relative overflow-hidden">
           <div className="relative z-10">
-            <h1 className="text-5xl font-black tracking-tighter mb-6 leading-none uppercase">Laboratorio de Ciencias de Datos</h1>
+            <h1 className="text-5xl font-black tracking-tighter mb-6 leading-none uppercase">Laboratorio de Calidad y Ciencia de Datos</h1>
             <div className="w-20 h-2 bg-uai-accent mb-8 rounded-full"></div>
             <p className="text-uai-accent/80 text-xl font-medium italic">
               Plataforma institucional para la investigación avanzada y gestión de datasets científicos.

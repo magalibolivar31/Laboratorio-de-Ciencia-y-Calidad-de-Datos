@@ -46,7 +46,7 @@ const Home: React.FC = () => {
                   CAETI
                 </h1>
                 <p className="text-xl md:text-3xl font-bold uppercase tracking-[0.4em] text-white opacity-90">
-                  Laboratorio de Ciencias de Datos
+                  Laboratorio de Calidad y Ciencia de Datos
                 </p>
               </div>
             </div>

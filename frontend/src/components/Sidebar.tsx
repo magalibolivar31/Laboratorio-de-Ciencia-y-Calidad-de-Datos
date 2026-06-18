@@ -34,7 +34,7 @@ const Sidebar: React.FC = () => {
             UAI <span className="text-gray-400 font-light">|</span> CAETI
           </span>
         </div>
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 ml-1">Ciencias de Datos</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 ml-1">Calidad y Ciencia de Datos</p>
       </div>
 
       <nav className="flex-1 p-4 space-y-2 mt-4">

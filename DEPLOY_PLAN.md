@@ -1,6 +1,6 @@
 # 🚀 Plan de Despliegue en Dokploy — UAI | CAETI
 
-Este documento detalla la estrategia definitiva para desplegar el **Laboratorio de Ciencias de Datos** de forma 100% automatizada.
+Este documento detalla la estrategia definitiva para desplegar el **Laboratorio de Calidad y Ciencia de Datos** de forma 100% automatizada.
 
 ---
 
