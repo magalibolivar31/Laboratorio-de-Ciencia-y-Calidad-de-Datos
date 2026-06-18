@@ -53,8 +53,22 @@ export const searchDatasets = async (req: any, res: Response) => {
       }
     } catch {}
 
-    // Si el usuario pasó una key personal, tiene la mayor prioridad
-    if (apiKey) {
+    // Tokens personales ACTIVOS del usuario (máxima prioridad)
+    if (req.usuarioId) {
+      try {
+        const userTokens = await prisma.token.findMany({
+          where: { usuario_id: req.usuarioId, activa: true }
+        });
+        for (const t of userTokens) {
+          const envVar = FUENTE_ENV[t.servicio];
+          if (envVar && t.api_key_cifrada) env[envVar] = t.api_key_cifrada;
+          if ((t.servicio === 'Kaggle') && t.usuario_api) env['KAGGLE_USERNAME'] = t.usuario_api;
+        }
+      } catch {}
+    }
+
+    // apiKey legacy (del modal de búsqueda) — se ignora porque los tokens de Settings tienen prioridad
+    if (apiKey && !req.usuarioId) {
       env.ZENODO_TOKEN = apiKey;
       env.KAGGLE_KEY = apiKey;
       env.HUGGINGFACE_TOKEN = apiKey;

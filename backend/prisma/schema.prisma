@@ -24,12 +24,16 @@ model Usuario {
 }
 
 model Token {
-  id              Int      @id @default(autoincrement())
+  id              Int          @id @default(autoincrement())
   usuario_id      Int
+  fuente_id       Int?
   api_key_cifrada String
-  servicio        String   @db.VarChar(50)
-  created_at      DateTime @default(now())
-  usuario         Usuario  @relation(fields: [usuario_id], references: [id])
+  usuario_api     String?      @db.VarChar(100)
+  activa          Boolean      @default(true)
+  servicio        String       @db.VarChar(50)
+  created_at      DateTime     @default(now())
+  usuario         Usuario      @relation(fields: [usuario_id], references: [id])
+  fuente          FuenteDatos? @relation(fields: [fuente_id], references: [id], onDelete: SetNull)
 }
 
 model Keyword {
@@ -98,6 +102,7 @@ model FuenteDatos {
   activa      Boolean  @default(true)
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
+  tokens      Token[]
 }
 
 model AuditLog {

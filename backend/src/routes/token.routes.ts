@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getTokens, addToken, updateToken, deleteToken } from '../controllers/token.controller';
+import { getTokens, addToken, updateToken, toggleToken, deleteToken } from '../controllers/token.controller';
 import { authMiddleware } from '../middlewares/auth.middleware';
 
 const router = Router();
@@ -10,6 +10,7 @@ router.use(authMiddleware);
 router.get('/', getTokens);
 router.post('/', addToken);
 router.put('/:id', updateToken);
+router.patch('/:id/toggle', toggleToken);
 router.delete('/:id', deleteToken);
 
 export default router;
