@@ -19,7 +19,7 @@ const Login: React.FC = () => {
       const response = await api.post('/auth/login', { email, password });
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.usuario));
-      navigate('/dashboard');
+      navigate('/laboratory');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Error al iniciar sesión. Verifica tus credenciales.');
     } finally {
