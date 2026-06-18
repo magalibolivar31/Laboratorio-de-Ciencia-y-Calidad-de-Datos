@@ -21,6 +21,7 @@ model Usuario {
   historial_busquedas     HistorialBusqueda[]
   historial_exportaciones HistorialExportacion[]
   auditlog                AuditLog[]
+  reset_tokens            PasswordResetToken[]
 }
 
 model Token {
@@ -103,6 +104,16 @@ model FuenteDatos {
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
   tokens      Token[]
+}
+
+model PasswordResetToken {
+  id         Int      @id @default(autoincrement())
+  usuario_id Int
+  token      String   @unique
+  expires_at DateTime
+  used       Boolean  @default(false)
+  created_at DateTime @default(now())
+  usuario    Usuario  @relation(fields: [usuario_id], references: [id])
 }
 
 model AuditLog {

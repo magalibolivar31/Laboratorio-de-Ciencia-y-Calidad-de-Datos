@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Settings from './pages/Settings';
 import Exports from './pages/Exports';
 import SearchLaboratory from './pages/SearchLaboratory';
@@ -17,8 +19,10 @@ function App() {
       <GlobalLayout>
         <Routes>
           <Route path="/"          element={<Home />} />
-          <Route path="/login"     element={<Login />} />
-          <Route path="/register"  element={<Register />} />
+          <Route path="/login"            element={<Login />} />
+          <Route path="/register"         element={<Register />} />
+          <Route path="/forgot-password"  element={<ForgotPassword />} />
+          <Route path="/reset-password"   element={<ResetPassword />} />
 
           <Route path="/laboratory" element={<PrivateRoute><SearchLaboratory /></PrivateRoute>} />
           <Route path="/keywords"   element={<PrivateRoute><Keywords /></PrivateRoute>} />
