@@ -8,12 +8,19 @@ datasource db {
 }
 
 model Usuario {
-  id            Int       @id @default(autoincrement())
-  nombre        String    @db.VarChar(100)
-  email         String    @unique @db.VarChar(150)
-  password_hash String
-  created_at    DateTime  @default(now())
-  tokens        Token[]
+  id                      Int                    @id @default(autoincrement())
+  nombre                  String                 @db.VarChar(100)
+  email                   String                 @unique @db.VarChar(150)
+  password_hash           String
+  rol                     String                 @default("INVESTIGADOR") @db.VarChar(20)
+  activo                  Boolean                @default(true)
+  created_at              DateTime               @default(now())
+  tokens                  Token[]
+  keywords                Keyword[]
+  grupos                  GrupoDiccionario[]
+  historial_busquedas     HistorialBusqueda[]
+  historial_exportaciones HistorialExportacion[]
+  auditlog                AuditLog[]
 }
 
 model Token {
@@ -23,4 +30,83 @@ model Token {
   servicio        String   @db.VarChar(50)
   created_at      DateTime @default(now())
   usuario         Usuario  @relation(fields: [usuario_id], references: [id])
+}
+
+model Keyword {
+  id         Int                       @id @default(autoincrement())
+  usuario_id Int
+  palabra    String                    @db.VarChar(200)
+  categoria  String                    @default("General") @db.VarChar(100)
+  created_at DateTime                  @default(now())
+  usuario    Usuario                   @relation(fields: [usuario_id], references: [id])
+  grupos     GrupoDiccionarioKeyword[]
+}
+
+model GrupoDiccionario {
+  id          Int                       @id @default(autoincrement())
+  usuario_id  Int
+  nombre      String                    @db.VarChar(100)
+  descripcion String?                   @db.VarChar(255)
+  created_at  DateTime                  @default(now())
+  usuario     Usuario                   @relation(fields: [usuario_id], references: [id])
+  keywords    GrupoDiccionarioKeyword[]
+}
+
+model GrupoDiccionarioKeyword {
+  grupo_id   Int
+  keyword_id Int
+  grupo      GrupoDiccionario @relation(fields: [grupo_id], references: [id], onDelete: Cascade)
+  keyword    Keyword          @relation(fields: [keyword_id], references: [id], onDelete: Cascade)
+
+  @@id([grupo_id, keyword_id])
+}
+
+model HistorialBusqueda {
+  id            Int                    @id @default(autoincrement())
+  usuario_id    Int
+  keywords      String
+  fuente        String                 @db.VarChar(100)
+  resultados    Int                    @default(0)
+  created_at    DateTime               @default(now())
+  usuario       Usuario                @relation(fields: [usuario_id], references: [id])
+  exportaciones HistorialExportacion[]
+}
+
+model HistorialExportacion {
+  id             Int               @id @default(autoincrement())
+  usuario_id     Int
+  busqueda_id    Int?
+  nombre_archivo String            @db.VarChar(255)
+  formato        String            @default("xlsx") @db.VarChar(10)
+  tamanio_bytes  Int?
+  url            String?
+  nombre         String?           @db.VarChar(200)
+  publica        Boolean           @default(false)
+  descripcion    String?           @db.VarChar(500)
+  created_at     DateTime          @default(now())
+  usuario        Usuario           @relation(fields: [usuario_id], references: [id])
+  busqueda       HistorialBusqueda? @relation(fields: [busqueda_id], references: [id])
+}
+
+model FuenteDatos {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @db.VarChar(100)
+  tipo        String   @db.VarChar(50)
+  url_base    String?
+  descripcion String?
+  activa      Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  usuario_id Int?
+  accion     String   @db.VarChar(100)
+  entidad    String   @db.VarChar(50)
+  entidad_id String?  @db.VarChar(50)
+  detalle    String?
+  ip         String?  @db.VarChar(50)
+  created_at DateTime @default(now())
+  usuario    Usuario? @relation(fields: [usuario_id], references: [id])
 }

@@ -3,11 +3,11 @@ import { spawn } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 import * as XLSX from 'xlsx';
+import prisma from '../lib/prisma';
+import { logAudit } from '../lib/audit.helper';
 
-export const searchDatasets = async (req: Request, res: Response) => {
+export const searchDatasets = async (req: any, res: Response) => {
   const { keywords, apiKey } = req.body;
-
-  console.log('[DEBUG] Petición de búsqueda recibida:', { keywords, apiKey: apiKey ? '***' : 'none' });
 
   if (!keywords || !Array.isArray(keywords) || keywords.length === 0) {
     return res.status(400).json({ error: 'Debes proporcionar al menos una palabra clave.' });
@@ -15,9 +15,7 @@ export const searchDatasets = async (req: Request, res: Response) => {
 
   try {
     const pythonPath = process.env.PYTHON_PATH || 'python';
-    
-    // Ruta absoluta basada en la raíz del proyecto (/app en Docker)
-    const rootDir = path.resolve(process.cwd());
+    const rootDir = path.resolve(__dirname, '../../../');
     const scriptPath = path.join(rootDir, 'python/etl.py');
     const exportsPath = path.join(rootDir, 'exports');
 
@@ -25,26 +23,14 @@ export const searchDatasets = async (req: Request, res: Response) => {
       fs.mkdirSync(exportsPath, { recursive: true });
     }
 
-    // Configurar variables de entorno (API Keys)
-    // Prioridad: API Key manual (si viene en apiKey) > .env
-    const env: any = { ...process.env };
-    
+    const env: any = { ...process.env, PYTHONIOENCODING: 'utf-8' };
     if (apiKey) {
-      // Si viene una clave manual (de la bóveda o temporal), la usamos para todos los servicios
       env.ZENODO_TOKEN = apiKey;
       env.KAGGLE_KEY = apiKey;
       env.HUGGINGFACE_TOKEN = apiKey;
     }
 
-    // Lógica de filtrado de fuentes según la opción del combo
-    let activeKeywords = [...keywords];
-    const service = req.body.service; // Enviado desde el frontend
-
-    // Si no es búsqueda integral, podríamos filtrar o pasar un flag al script
-    // Por ahora, el script python usa todas las fuentes, pero el backend
-    // asegura que las keys estén disponibles.
-
-    console.log(`[PYTHON] Intentando ejecutar: ${pythonPath} ${scriptPath}`);
+    const service = req.body.service || 'ADMIN_DEFAULT';
 
     const pyProcess = spawn(pythonPath, [scriptPath, ...keywords], {
       cwd: exportsPath,
@@ -54,40 +40,30 @@ export const searchDatasets = async (req: Request, res: Response) => {
     let output = '';
     let errorOutput = '';
 
-    pyProcess.stdout.on('data', (data) => {
-      output += data.toString();
-      console.log(`[PYTHON STDOUT] ${data}`);
-    });
-
-    pyProcess.stderr.on('data', (data) => {
-      errorOutput += data.toString();
-      console.error(`[PYTHON STDERR] ${data}`);
-    });
+    pyProcess.stdout.on('data', (data) => { output += data.toString(); });
+    pyProcess.stderr.on('data', (data) => { errorOutput += data.toString(); });
 
     pyProcess.on('error', (err) => {
-      console.error('[PYTHON SPAWN ERROR]', err);
       if (!res.headersSent) {
+        logAudit(req.usuarioId || null, 'ERROR_BUSQUEDA', 'Dataset', undefined, err.message);
         res.status(500).json({ error: 'No se pudo iniciar el motor de Python.', details: err.message });
       }
     });
 
-    pyProcess.on('close', (code) => {
-      console.log(`[PYTHON] Proceso finalizado con código ${code}`);
-      
+    pyProcess.on('close', async (code) => {
       if (res.headersSent) return;
 
       if (code !== 0) {
-        console.error(`[PYTHON ERROR] El script falló con código ${code}. Error Output: ${errorOutput}`);
-        return res.status(500).json({ 
-          error: 'El motor de búsqueda falló.', 
+        await logAudit(req.usuarioId || null, 'ERROR_BUSQUEDA', 'Dataset', undefined, errorOutput);
+        return res.status(500).json({
+          error: 'El motor de búsqueda falló.',
           details: errorOutput || 'El proceso de Python terminó con un error desconocido.',
-          code: code 
+          code: code
         });
       }
 
-      console.log(`[PYTHON OUTPUT] ${output}`);
       const match = output.match(/Guardado: (REPOSITORIO_.*\.xlsx)/);
-      const filename = match ? match[1] : null;
+      const filename = match ? match[1].trim() : null;
       const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
 
       let realData: any[] = [];
@@ -98,8 +74,6 @@ export const searchDatasets = async (req: Request, res: Response) => {
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
           realData = XLSX.utils.sheet_to_json(worksheet);
-          
-          // Mapear los datos para que el frontend los entienda
           realData = realData.map((row: any, index: number) => ({
             id: index,
             nro: row["Nro"] || index + 1,
@@ -127,10 +101,30 @@ export const searchDatasets = async (req: Request, res: Response) => {
         }
       }
 
+      // Guardar búsqueda en historial (la exportación se guarda solo si el usuario confirma)
+      let busquedaId: number | null = null;
+      if (req.usuarioId) {
+        try {
+          const busqueda = await prisma.historialBusqueda.create({
+            data: {
+              usuario_id: req.usuarioId,
+              keywords: keywords.join(', '),
+              fuente: service,
+              resultados: realData.length
+            }
+          });
+          busquedaId = busqueda.id;
+          await logAudit(req.usuarioId, 'BUSQUEDA', 'Dataset', undefined, `${keywords.join(', ')} | ${service} | ${realData.length} resultados`);
+        } catch (histErr) {
+          console.error('[HISTORIAL ERROR]', histErr);
+        }
+      }
+
       res.json({
         mensaje: 'Búsqueda completada',
         archivo: filename,
-        url: filename ? `${backendUrl}/exports/${filename}` : null,
+        url: filename ? `${backendUrl}/exports/${encodeURIComponent(filename)}` : null,
+        busqueda_id: busquedaId,
         resultados: realData
       });
     });
