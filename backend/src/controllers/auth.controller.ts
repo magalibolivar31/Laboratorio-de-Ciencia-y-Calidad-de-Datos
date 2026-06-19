@@ -191,7 +191,7 @@ export const requestReset = async (req: Request, res: Response) => {
       data: { usuario_id: user.id, token, expires_at }
     });
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
     const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
 
     try {
