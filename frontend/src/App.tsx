@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -30,6 +30,8 @@ function App() {
           <Route path="/exports"    element={<PrivateRoute><Exports /></PrivateRoute>} />
           <Route path="/settings"   element={<PrivateRoute><Settings /></PrivateRoute>} />
           <Route path="/admin"      element={<PrivateRoute><Admin /></PrivateRoute>} />
+
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </GlobalLayout>
     </Router>
