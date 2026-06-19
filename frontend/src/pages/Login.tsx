@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Mail, Lock, LogIn, AlertCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
+import { GoogleLogin } from '@react-oauth/google';
+import type { CredentialResponse } from '@react-oauth/google';
 import api from '../lib/api';
 
 const Login: React.FC = () => {
