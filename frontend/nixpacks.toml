@@ -5,4 +5,4 @@ pkgs = ["nodejs_20"]
 cmds = ["npm install", "npm run build"]
 
 [start]
-cmd = "npm run preview -- --host 0.0.0.0"
+cmd = "npx serve -s dist -l 4173"
