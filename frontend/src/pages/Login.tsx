@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Lock, LogIn, AlertCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import api from '../lib/api';
 
 const Login: React.FC = () => {
@@ -14,7 +15,6 @@ const Login: React.FC = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       const response = await api.post('/auth/login', { email, password });
       localStorage.setItem('token', response.data.token);
@@ -27,10 +27,23 @@ const Login: React.FC = () => {
     }
   };
 
+  const handleGoogleSuccess = async (response: CredentialResponse) => {
+    if (!response.credential) return;
+    setError('');
+    try {
+      const res = await api.post('/auth/google', { credential: response.credential });
+      localStorage.setItem('token', res.data.token);
+      localStorage.setItem('user', JSON.stringify(res.data.usuario));
+      navigate('/laboratory');
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Error al iniciar sesión con Google.');
+    }
+  };
+
   return (
     <div className="min-h-[calc(100vh-64px)] w-full flex items-center justify-center bg-gray-50 px-6 py-12">
       <div className="max-w-4xl w-full bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row border border-gray-100">
-        {/* Lado Izquierdo: Branding / Imagen */}
+        {/* Lado Izquierdo: Branding */}
         <div className="md:w-1/2 bg-uai-red p-12 flex flex-col justify-center text-white relative overflow-hidden">
           <div className="relative z-10">
             <h1 className="text-5xl font-black tracking-tighter mb-6 leading-none uppercase">Laboratorio de Calidad y Ciencia de Datos</h1>
@@ -57,6 +70,24 @@ const Login: React.FC = () => {
               <p className="text-sm font-medium">{error}</p>
             </div>
           )}
+
+          {/* Google Sign-In */}
+          <div className="mb-6">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => setError('Error al iniciar sesión con Google.')}
+              width="100%"
+              text="signin_with"
+              shape="rectangular"
+              logo_alignment="left"
+            />
+          </div>
+
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">o con email</span>
+            <div className="flex-1 h-px bg-gray-200" />
+          </div>
 
           <form className="space-y-6" onSubmit={handleLogin}>
             <div>
