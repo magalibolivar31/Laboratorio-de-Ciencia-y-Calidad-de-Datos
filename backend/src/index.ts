@@ -12,6 +12,7 @@ import diccionarioRoutes from './routes/diccionario.routes';
 import historialRoutes from './routes/historial.routes';
 import fuentesRoutes from './routes/fuentes.routes';
 import adminRoutes from './routes/admin.routes';
+import qualityRoutes from './routes/quality.routes';
 
 dotenv.config();
 
@@ -41,6 +42,7 @@ app.use('/api/diccionarios', diccionarioRoutes);
 app.use('/api/historial', historialRoutes);
 app.use('/api/fuentes', fuentesRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/quality', qualityRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, message: 'Servidor del TFI operativo' });

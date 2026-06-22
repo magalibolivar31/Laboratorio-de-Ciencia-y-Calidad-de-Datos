@@ -1,0 +1,11 @@
+{
+  "_comment": "Corpus de datasets para validar H1 (Quality Score predice utilidad para ML). Cada item: nombre, url de descarga DIRECTA (.csv), columna target y fuente. Extensible: agregá cualquier CSV directo (incluidos los de Zenodo/HealthData que encuentres con el buscador) indicando su target.",
+  "datasets": [
+    { "name": "Titanic", "url": "https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv", "target": "Survived", "source": "GitHub" },
+    { "name": "Iris", "url": "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv", "target": "species", "source": "seaborn" },
+    { "name": "Penguins", "url": "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv", "target": "species", "source": "seaborn" },
+    { "name": "Tips", "url": "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/tips.csv", "target": "sex", "source": "seaborn" },
+    { "name": "MPG", "url": "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/mpg.csv", "target": "origin", "source": "seaborn" },
+    { "name": "Diamonds", "url": "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/diamonds.csv", "target": "cut", "source": "seaborn" }
+  ]
+}

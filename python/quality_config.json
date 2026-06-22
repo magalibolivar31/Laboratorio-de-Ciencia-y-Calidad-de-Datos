@@ -1,0 +1,56 @@
+{
+  "methodologyVersion": "2.0",
+  "framework": "ISO/IEC 25012 - Data Quality Model",
+  "description": "Configuracion formal del Quality Score. Cada dimension se ancla a una caracteristica de calidad de datos de ISO/IEC 25012. Los pesos y umbrales son parametros explicitos y versionados: son la base de la validacion cientifica (se pueden ajustar y medir su efecto). NO modificar sin subir methodologyVersion.",
+  "dimensions": {
+    "completeness": {
+      "label": "Completitud",
+      "isoCharacteristic": "Completeness",
+      "definition": "Grado en que el dataset tiene valores para todos los atributos esperados.",
+      "weight": 0.30,
+      "direction": "higher_is_better",
+      "thresholds": { "warning": 90, "critical": 70 },
+      "rationale": "Pesa mas que el resto porque la ausencia de datos es el problema que mas degrada cualquier analisis. Umbral critico 70%: por encima de ~30% de faltantes la imputacion deja de ser confiable (referencia comun en literatura de missing data)."
+    },
+    "consistency": {
+      "label": "Consistencia",
+      "isoCharacteristic": "Consistency",
+      "definition": "Grado en que los datos estan libres de contradicciones y son coherentes en tipo y formato.",
+      "weight": 0.25,
+      "direction": "higher_is_better",
+      "thresholds": { "warning": 95, "critical": 80 },
+      "rationale": "Tipos mezclados (numero/texto en la misma columna) rompen el procesamiento aguas abajo. Se exige consistencia alta (warning 95%)."
+    },
+    "accuracy": {
+      "label": "Exactitud (sin anomalias)",
+      "isoCharacteristic": "Accuracy",
+      "definition": "Grado en que los datos representan correctamente el fenomeno; se aproxima por ausencia de valores anomalos.",
+      "weight": 0.25,
+      "direction": "higher_is_better",
+      "thresholds": { "warning": 90, "critical": 75 },
+      "rationale": "Proxy: 100 - %outliers (IsolationForest). Una tasa alta de anomalias sugiere errores de medicion o registro."
+    },
+    "uniqueness": {
+      "label": "Unicidad",
+      "isoCharacteristic": "Uniqueness / Credibility",
+      "definition": "Grado en que no existen registros duplicados.",
+      "weight": 0.20,
+      "direction": "higher_is_better",
+      "thresholds": { "warning": 98, "critical": 90 },
+      "rationale": "Duplicados inflan el tamano y sesgan el entrenamiento. Se aproxima por 100 - %duplicados."
+    }
+  },
+  "severityScale": {
+    "comment": "Escala de severidad UNICA aplicada a todas las dimensiones e issues, segun donde cae el valor respecto de los umbrales de la dimension.",
+    "levels": ["ok", "warning", "critical"]
+  },
+  "mlReadiness": {
+    "minRowsClassification": 100,
+    "minRowsRegression": 100,
+    "minRowsClustering": 50,
+    "minFeatures": 2,
+    "classificationMaxClasses": 20,
+    "imbalanceWarnRatio": 0.2,
+    "comment": "Parametros para evaluar aptitud (fitness-for-use) por caso de uso de ML."
+  }
+}

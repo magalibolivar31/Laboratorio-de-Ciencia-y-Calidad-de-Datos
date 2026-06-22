@@ -27,7 +27,12 @@ QA_REPORT.md
 
 # [ Archivos Generados (Exports) ]
 exports/*.xlsx
+exports/*.csv
+exports/*.tsv
+exports/SAMPLE_*
+exports/UPLOAD_*
 REPOSITORIO_*.xlsx
+!exports/.gitkeep
 
 # [ Herramientas / IDEs ]
 .vscode/
