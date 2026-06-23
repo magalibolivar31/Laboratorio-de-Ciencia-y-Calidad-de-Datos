@@ -502,15 +502,18 @@ const QualityAnalysis: React.FC = () => {
 
               {/* Reproducibilidad */}
               {report.reproducibility && (
-                <div className="pt-4 border-t border-gray-100 flex items-center gap-2 text-[11px] text-gray-400 font-medium flex-wrap">
-                  <Fingerprint size={13} className="shrink-0" />
-                  <span>Reproducibilidad:</span>
-                  <code className="px-1.5 py-0.5 bg-gray-100 rounded text-gray-500" title={report.reproducibility.sampleSha256}>
-                    sha256 {report.reproducibility.sampleSha256.slice(0, 12)}…
-                  </code>
-                  <span>· config v{report.reproducibility.configVersion}</span>
-                  <span>· {report.reproducibility.engineVersion}</span>
-                  <span>· {new Date(report.reproducibility.analyzedAt).toLocaleString('es-AR')}</span>
+                <div className="pt-4 border-t border-gray-100">
+                  <p className="flex items-center gap-1.5 text-xs font-bold text-gray-500">
+                    <Fingerprint size={14} className="text-gray-400 shrink-0" />
+                    Análisis reproducible y verificable
+                    <InfoPopover metric="reproducibility" size={12} />
+                  </p>
+                  <p className="text-[11px] text-gray-400 font-medium mt-1">
+                    Realizado el {new Date(report.reproducibility.analyzedAt).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })} · motor v{report.reproducibility.configVersion}
+                  </p>
+                  <p className="text-[10px] text-gray-300 font-mono mt-1 truncate" title={report.reproducibility.sampleSha256}>
+                    huella sha256: {report.reproducibility.sampleSha256.slice(0, 16)}…
+                  </p>
                 </div>
               )}
             </div>

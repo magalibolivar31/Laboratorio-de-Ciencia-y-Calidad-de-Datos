@@ -13,6 +13,15 @@ export interface MetricExplanation {
 }
 
 export const QUALITY_EXPLANATIONS: Record<string, MetricExplanation> = {
+  reproducibility: {
+    title: 'Reproducibilidad',
+    iso: 'Conocé bajo qué condiciones se hizo el análisis',
+    short: 'Registra con qué datos y con qué versión se hizo este análisis, para poder repetirlo y verificarlo.',
+    mide: 'Las condiciones exactas de la corrida: una huella digital del archivo analizado, los parámetros usados (filas/MB de la muestra), la versión del scoring y del motor, y la fecha.',
+    calculo: 'Se calcula un hash SHA-256 del contenido del archivo (una "huella" de 64 caracteres: el mismo archivo da siempre el mismo código, y si cambia un solo dato el código cambia por completo). Se guardan también los parámetros de la muestra y las versiones de la configuración.',
+    importancia: 'Hace que los resultados sean verificables y no un simple "confiá en mí". Cualquiera con el mismo archivo puede recalcular el hash, comprobar que coincide y reproducir el mismo score con la misma versión.',
+    ejemplo: 'Si reportás "este dataset dio 89", el hash permite que otra persona confirme que partió exactamente de ese archivo (sin cambios) y obtenga el mismo 89.',
+  },
   iso25012: {
     title: 'ISO/IEC 25012',
     iso: 'Estándar internacional de calidad de datos',
