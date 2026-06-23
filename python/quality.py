@@ -63,6 +63,22 @@ def detect_sep(path):
     return best if candidates[best] > 0 else ","
 
 
+def read_csv_robust(path, sep, **kwargs):
+    """Lee un CSV probando varios encodings. Muchos CSV (Excel, gobierno español)
+    vienen en latin-1/cp1252, no en utf-8 -> con utf-8 forzado, fallarían."""
+    last_err = None
+    for enc in ("utf-8", "utf-8-sig", "latin-1", "cp1252"):
+        try:
+            return pd.read_csv(path, sep=sep, encoding=enc,
+                               on_bad_lines="skip", low_memory=False, **kwargs)
+        except UnicodeDecodeError as exc:
+            last_err = exc
+            continue
+    # último recurso: reemplazar bytes inválidos (nunca falla)
+    return pd.read_csv(path, sep=sep, encoding="utf-8", encoding_errors="replace",
+                       on_bad_lines="skip", low_memory=False, **kwargs)
+
+
 def load_sample(path, max_rows):
     """Carga el archivo tomando un sample aleatorio si supera max_rows.
     Devuelve (df, rows_total, rows_sampled)."""
@@ -80,10 +96,9 @@ def load_sample(path, max_rows):
             keep_prob = max_rows / rows_total
             rng = np.random.default_rng(42)
             skip = lambda i: i > 0 and rng.random() > keep_prob
-            df = pd.read_csv(path, sep=sep, skiprows=skip, encoding="utf-8",
-                             on_bad_lines="skip", low_memory=False)
+            df = read_csv_robust(path, sep, skiprows=skip)
         else:
-            df = pd.read_csv(path, sep=sep, encoding="utf-8", on_bad_lines="skip", low_memory=False)
+            df = read_csv_robust(path, sep)
         return df, rows_total, len(df)
 
     if lower.endswith(".xlsx") or lower.endswith(".xls"):

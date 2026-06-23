@@ -41,15 +41,15 @@ def main():
         from sklearn.model_selection import cross_val_score
         from sklearn.preprocessing import LabelEncoder
 
-        # carga (con detección de separador para CSV con ';' etc.)
+        # carga (con detección de separador y encoding robusto para CSV)
         if args.path.lower().endswith((".xlsx", ".xls")):
             df = pd.read_excel(args.path)
         else:
             import os, sys as _sys
             _sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-            from quality import detect_sep
+            from quality import detect_sep, read_csv_robust
             sep = "\t" if args.path.lower().endswith(".tsv") else detect_sep(args.path)
-            df = pd.read_csv(args.path, sep=sep, on_bad_lines="skip", low_memory=False)
+            df = read_csv_robust(args.path, sep)
         if len(df) > args.max_rows:
             df = df.sample(n=args.max_rows, random_state=42).reset_index(drop=True)
 

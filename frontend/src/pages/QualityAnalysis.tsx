@@ -174,7 +174,8 @@ const QualityAnalysis: React.FC = () => {
       showSuccess(`Archivo "${file.name}" subido y analizado ✓`);
       fetchAll();
     } catch (e: any) {
-      setUrlError(e?.response?.data?.error || e?.response?.data?.details || 'No se pudo analizar el archivo.');
+      const d = e?.response?.data;
+      setUrlError(d?.details || d?.error || 'No se pudo analizar el archivo.');
     } finally {
       setUploadingFile(false);
     }
