@@ -359,6 +359,16 @@ const QualityAnalysis: React.FC = () => {
 
               {/* Validación predictiva (utilidad real para ML) */}
               <div className="bg-gray-50 rounded-2xl border border-gray-200 p-5">
+                {/* Por qué importa: garbage in, garbage out */}
+                <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-xl p-3.5 mb-4">
+                  <AlertTriangle size={18} className="text-amber-500 shrink-0 mt-0.5" />
+                  <p className="text-xs text-amber-800 font-medium leading-relaxed">
+                    <b>Que un dataset esté "limpio" no significa que sirva para entrenar.</b> Si le metés a un modelo
+                    datos poco confiables o etiquetas mal puestas, aprende mal: <b>basura entra, basura sale</b>.
+                    Un score alto de calidad técnica puede esconder un target inservible. Por eso, antes de
+                    confiar en el dataset, conviene <b>probarlo de verdad</b> con un modelo.
+                  </p>
+                </div>
                 <p className="text-sm font-black text-gray-700 flex items-center gap-2 mb-1"><FlaskConical size={16} className="text-uai-red" /> Validación predictiva <InfoPopover metric="validation" size={13} /></p>
                 <p className="text-xs text-gray-500 font-medium mb-3">Qué se hace acá: elegís la columna que querrías predecir (target) y el sistema <b>entrena un modelo real</b> con ella. Mide tres cosas: la <b>performance</b> (qué tan predecible es), la <b>calidad de las etiquetas</b> (si el target es confiable) y un <b>score combinado</b>. Es la utilidad real para ML, no solo la calidad técnica.</p>
                 <div className="flex items-center gap-2 flex-wrap">
