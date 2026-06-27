@@ -1,0 +1,178 @@
+// Explicaciones de cada métrica del dashboard de calidad.
+// Estilo académico pero entendible para estudiantes. Ancladas a ISO/IEC 25012.
+// Se consumen desde el componente <InfoPopover>.
+
+export interface MetricExplanation {
+  title: string;
+  short: string;        // definición de 1–2 líneas (también se usa como tooltip hover)
+  mide: string;         // qué mide exactamente
+  calculo: string;      // cómo se calcula (conceptual, sin código)
+  importancia: string;  // por qué es importante
+  ejemplo: string;      // ejemplo simple aplicado a datasets
+  iso?: string;         // característica ISO/IEC 25012 asociada
+}
+
+export const QUALITY_EXPLANATIONS: Record<string, MetricExplanation> = {
+  reproducibility: {
+    title: 'Reproducibilidad',
+    iso: 'Conocé bajo qué condiciones se hizo el análisis',
+    short: 'Registra con qué datos y con qué versión se hizo este análisis, para poder repetirlo y verificarlo.',
+    mide: 'Las condiciones exactas de la corrida: una huella digital del archivo analizado, los parámetros usados (filas/MB de la muestra), la versión del scoring y del motor, y la fecha.',
+    calculo: 'Se calcula un hash SHA-256 del contenido del archivo (una "huella" de 64 caracteres: el mismo archivo da siempre el mismo código, y si cambia un solo dato el código cambia por completo). Se guardan también los parámetros de la muestra y las versiones de la configuración.',
+    importancia: 'Hace que los resultados sean verificables y no un simple "confiá en mí". Cualquiera con el mismo archivo puede recalcular el hash, comprobar que coincide y reproducir el mismo score con la misma versión.',
+    ejemplo: 'Si reportás "este dataset dio 89", el hash permite que otra persona confirme que partió exactamente de ese archivo (sin cambios) y obtenga el mismo 89.',
+  },
+  iso25012: {
+    title: 'ISO/IEC 25012',
+    iso: 'Estándar internacional de calidad de datos',
+    short: 'Es la norma internacional que define las dimensiones de calidad de datos sobre las que se apoya este sistema.',
+    mide: 'No mide nada por sí sola: es un marco de referencia. Define un catálogo de características de calidad de datos (completitud, consistencia, exactitud, credibilidad, etc.) reconocido a nivel internacional.',
+    calculo: 'La norma describe las dimensiones, pero NO dice cómo ponderarlas ni cómo combinarlas en un puntaje único. Por eso este sistema toma 4 de esas dimensiones (Completitud, Consistencia, Exactitud, Unicidad) y las agrega con una fórmula y pesos propios (heurística inspirada en ISO, no "ISO compliant").',
+    importancia: 'Anclar las métricas a un estándar reconocido le da fundamento y vocabulario común al score, en vez de inventar dimensiones desde cero. Es lo que lo hace defendible académicamente.',
+    ejemplo: 'Cuando ves "Completitud" o "Consistencia" en el desglose, son características definidas por ISO/IEC 25012; la forma de medirlas y pesarlas es decisión nuestra.',
+  },
+  qualityScore: {
+    title: 'Quality Score global',
+    short: 'Indicador único (0–100) que resume la calidad técnica del dataset combinando todas las dimensiones.',
+    mide: 'El estado general de calidad de los datos, agregando completitud, consistencia, exactitud y unicidad en un solo número.',
+    calculo: 'Es una suma ponderada: cada dimensión aporta su valor (0–100) multiplicado por un peso. Los pesos suman 1, así que el resultado queda en escala 0–100. Los pesos y umbrales están definidos y versionados en una configuración (no son arbitrarios en el código).',
+    importancia: 'Permite ordenar y comparar datasets de un vistazo, y disparar alertas cuando la calidad cae por debajo de un umbral aceptable.',
+    ejemplo: 'Un dataset con datos completos y sin duplicados pero con tipos mezclados puede dar 82: bueno, pero con una dimensión que baja el promedio.',
+    iso: 'ISO/IEC 25012 — modelo de calidad de datos',
+  },
+  completeness: {
+    title: 'Completitud (Completeness)',
+    short: 'Qué proporción de los datos esperados están efectivamente presentes (no nulos).',
+    mide: 'El porcentaje de celdas con valor frente al total. Lo opuesto a los valores faltantes.',
+    calculo: 'Se cuentan las celdas no vacías sobre el total de celdas (filas × columnas). 100% = sin faltantes; 70% = falta un 30% de los datos.',
+    importancia: 'Es la dimensión que más pesa: la mayoría de los modelos no toleran huecos, y por encima de ~30% de faltantes la imputación deja de ser confiable.',
+    ejemplo: 'Si la columna "edad" está vacía en 400 de 1000 filas, su completitud es 60% → se marca como crítico.',
+    iso: 'ISO/IEC 25012 — Completeness',
+  },
+  consistency: {
+    title: 'Consistencia (Consistency)',
+    short: 'Qué tan coherentes y libres de contradicciones son los datos en tipo y formato.',
+    mide: 'Si cada columna mantiene un tipo de dato homogéneo (todo numérico o todo texto), sin mezclas.',
+    calculo: 'Por cada columna se mide la fracción de valores que siguen el tipo dominante; se promedia entre columnas. Una columna con números y texto mezclados baja el puntaje.',
+    importancia: 'Los tipos mezclados rompen el procesamiento aguas abajo (parsing, cálculos, entrenamiento). Una consistencia alta es requisito para automatizar.',
+    ejemplo: 'Una columna "precio" con valores 100, 200 y "N/D" mezcla número y texto → consistencia degradada.',
+    iso: 'ISO/IEC 25012 — Consistency',
+  },
+  accuracy: {
+    title: 'Exactitud (Accuracy)',
+    short: 'Qué tan libres de valores anómalos o sospechosos están los datos.',
+    mide: 'La ausencia de outliers: registros que se desvían fuertemente del patrón general y suelen indicar errores de medición o carga.',
+    calculo: 'Se aproxima con un modelo de detección de anomalías (Isolation Forest) sobre las columnas numéricas. El puntaje es 100 menos el porcentaje de registros anómalos detectados.',
+    importancia: 'Datos con muchos valores atípicos sesgan estadísticas y modelos. Es un proxy de "qué tan bien representan los datos al fenómeno real".',
+    ejemplo: 'Una "edad" de 999 o un "peso" de -5 kg son anomalías que reducen la exactitud.',
+    iso: 'ISO/IEC 25012 — Accuracy',
+  },
+  uniqueness: {
+    title: 'Unicidad (Uniqueness)',
+    short: 'Qué proporción de los registros son únicos, sin duplicados exactos.',
+    mide: 'La ausencia de filas repetidas. Lo opuesto al porcentaje de duplicados.',
+    calculo: 'Se detectan filas idénticas y se calcula 100 menos el porcentaje de duplicados sobre el total de filas.',
+    importancia: 'Los duplicados inflan artificialmente el tamaño del dataset y sesgan el entrenamiento (el modelo "ve" los mismos casos varias veces).',
+    ejemplo: 'Si 50 de 1000 filas están repetidas, la unicidad es 95%.',
+    iso: 'ISO/IEC 25012 — Uniqueness / Credibility',
+  },
+  mlReadiness: {
+    title: 'Aptitud para Machine Learning',
+    iso: 'Fitness-for-use · aptitud por caso de uso',
+    short: 'Evalúa si el dataset sirve para distintos casos de uso de ML, más allá de su calidad técnica.',
+    mide: 'La adecuación (fitness-for-use) para Clasificación, Regresión, Clustering y Series temporales, según la estructura real de los datos.',
+    calculo: 'Reglas interpretables sobre señales del dataset: ¿hay una columna que sirva de target?, ¿cuántas filas y variables hay?, ¿las clases están balanceadas?, ¿existe una columna temporal? Cada caso de uso se marca como apto, limitado o no apto.',
+    importancia: 'Un dataset puede tener excelente calidad técnica pero ser inútil para tu objetivo (p. ej. sin target no sirve para clasificación). Separa "datos limpios" de "datos útiles".',
+    ejemplo: 'Un dataset sin columna de fecha se marca "no apto" para series temporales, aunque su calidad sea alta.',
+  },
+  fitClasificacion: {
+    title: 'Aptitud para Clasificación',
+    iso: 'Caso de uso de Machine Learning',
+    short: 'Indica si el dataset sirve para predecir una categoría (etiqueta) a partir del resto de las variables.',
+    mide: 'Si existe una columna categórica que pueda funcionar como objetivo (target) con un número manejable de clases, y si hay suficientes filas y balance entre clases.',
+    calculo: 'Se busca una columna con entre 2 y ~20 valores distintos. Se chequea que haya al menos 100 filas y que las clases no estén muy desbalanceadas. Según eso: apto, limitado o no apto.',
+    importancia: 'La clasificación es una de las tareas más comunes de ML (diagnóstico sí/no, tipo de tumor, spam/no spam). Sin un target categórico válido, no es posible.',
+    ejemplo: 'Un dataset con la columna "diagnóstico" (sano/enfermo) y 1.000 filas balanceadas → apto para clasificación.',
+  },
+  fitRegresion: {
+    title: 'Aptitud para Regresión',
+    iso: 'Caso de uso de Machine Learning',
+    short: 'Indica si el dataset sirve para predecir un valor numérico continuo.',
+    mide: 'Si existe una variable numérica continua que pueda ser el objetivo a predecir, y si hay suficientes filas.',
+    calculo: 'Se busca una columna numérica con muchos valores distintos (no categórica). Se exige un mínimo de filas. Según eso: apto, limitado o no apto.',
+    importancia: 'La regresión predice cantidades (precio, temperatura, presión arterial). Requiere un target numérico continuo, distinto al de clasificación.',
+    ejemplo: 'Predecir el "precio" de una propiedad a partir de sus características → apto para regresión.',
+  },
+  fitClustering: {
+    title: 'Aptitud para Clustering',
+    iso: 'Caso de uso de Machine Learning',
+    short: 'Indica si el dataset sirve para agrupar registros similares sin necesidad de etiquetas.',
+    mide: 'Si hay suficientes variables numéricas y filas para encontrar grupos naturales. No necesita una columna objetivo.',
+    calculo: 'Se cuenta la cantidad de features numéricas (al menos 2) y de filas (al menos 50). Según eso: apto, limitado o no apto.',
+    importancia: 'El clustering es aprendizaje no supervisado: descubre segmentos (tipos de pacientes, perfiles de usuarios) sin saber la respuesta de antemano.',
+    ejemplo: 'Agrupar pacientes por edad, peso y presión para hallar perfiles de riesgo → apto para clustering.',
+  },
+  fitSeries: {
+    title: 'Aptitud para Series temporales',
+    iso: 'Caso de uso de Machine Learning',
+    short: 'Indica si el dataset sirve para analizar o predecir datos a lo largo del tiempo.',
+    mide: 'Si existe una columna temporal (fecha u hora) que ordene los registros cronológicamente.',
+    calculo: 'Se detecta si alguna columna puede interpretarse como fecha/hora en la mayoría de sus valores. Si existe → apto; si no → no apto.',
+    importancia: 'Las series temporales permiten predecir tendencias (casos por mes, ventas diarias). Sin eje temporal, este tipo de análisis no es posible.',
+    ejemplo: 'Un registro de casos COVID con columna "fecha" diaria → apto para series temporales.',
+  },
+  labelQuality: {
+    title: 'Calidad de etiquetas',
+    iso: 'Confiabilidad del target para entrenar',
+    short: 'Estima qué tan confiables son las etiquetas (la columna target) para entrenar un modelo.',
+    mide: 'El porcentaje de etiquetas que parecen coherentes con los datos. Lo opuesto al "ruido de etiquetas" (registros mal clasificados).',
+    calculo: 'Sin necesidad de una verdad externa: se entrena un modelo en validación cruzada y se mira en cuántos casos predice consistentemente algo distinto de la etiqueta dada. Esas son sospechosas (técnica tipo confident learning / Cleanlab).',
+    importancia: 'Es la pieza que faltaba: un dataset puede tener features impecables pero etiquetas mal puestas, y eso destruye cualquier modelo. En los experimentos, sumar esta señal hizo que el score prediga la performance (correlación 0.99).',
+    ejemplo: 'Si en un dataset médico el 20% de los diagnósticos están mal cargados, la calidad de etiquetas baja a ~80 y avisa del problema.',
+  },
+  combinedScore: {
+    title: 'Score combinado',
+    iso: 'Calidad de features + de etiquetas',
+    short: 'Combina la calidad técnica de los datos (features) con la confiabilidad de las etiquetas.',
+    mide: 'Una visión más completa de la aptitud para ML: no solo "qué tan limpios están los datos" sino también "qué tan confiable es lo que se quiere predecir".',
+    calculo: 'Promedio del Quality Score (dimensiones de features) y la Calidad de etiquetas. Solo aplica cuando elegís un target de clasificación.',
+    importancia: 'Es el score que mejor predijo la performance real en los experimentos. Refleja que la utilidad de un dataset depende de ambas cosas: datos limpios Y etiquetas correctas.',
+    ejemplo: 'Features 90 + etiquetas 60 → combinado 75: datos limpios pero con etiquetas dudosas, ojo al entrenar.',
+  },
+  validation: {
+    title: 'Validación predictiva',
+    iso: 'Utilidad real medida con un modelo',
+    short: 'Mide la utilidad real entrenando un modelo baseline y observando su rendimiento.',
+    mide: 'Qué tan bien un modelo simple puede predecir una columna target a partir del resto, usando validación cruzada.',
+    calculo: 'Se entrena un Random Forest con cross-validation sobre el dataset y se reporta una métrica estándar (F1 para clasificación, R² para regresión). No busca el mejor modelo, sino una referencia objetiva de "predecibilidad".',
+    importancia: 'Convierte el sistema de descriptivo (describe problemas) a predictivo (estima usabilidad). Es la base para validar científicamente el Quality Score: correlacionarlo con el rendimiento real.',
+    ejemplo: 'Si predecir "diagnóstico" da F1 = 0.88, el dataset tiene fuerte señal predictiva para esa tarea.',
+  },
+  issues: {
+    title: 'Problemas detectados',
+    iso: 'Diagnóstico de calidad · severidad unificada',
+    short: 'Lista de hallazgos concretos de calidad, con severidad unificada.',
+    mide: 'Problemas específicos por columna o por dataset: faltantes, duplicados, anomalías, tipos inconsistentes.',
+    calculo: 'Cada problema se clasifica con la misma escala (ok / warning / critical) según dónde cae el valor respecto de los umbrales definidos para su dimensión. La severidad no se decide caso por caso, es consistente.',
+    importancia: 'Traduce los puntajes abstractos en acciones concretas: qué columna arreglar primero y con qué urgencia.',
+    ejemplo: '"Columna diagnóstico: 52.9% de valores faltantes → critical" indica el problema y su prioridad.',
+  },
+  alerts: {
+    title: 'Alertas',
+    iso: 'Avisos de contexto del análisis',
+    short: 'Avisos de alto nivel sobre situaciones que conviene revisar antes de usar el dataset.',
+    mide: 'Condiciones generales: columnas completamente vacías, análisis hecho sobre un sample, calidad global baja.',
+    calculo: 'Se generan por reglas a partir del análisis: si una columna no tiene ningún dato, si se trabajó sobre una muestra de un dataset grande, o si el score total cae por debajo de 50.',
+    importancia: 'Son advertencias de contexto: ayudan a interpretar el resultado correctamente y a evitar conclusiones erróneas.',
+    ejemplo: '"Análisis sobre sample de 50.000 filas de 2.000.000 totales" aclara que el resultado es una estimación.',
+  },
+  comparison: {
+    title: 'Comparación entre fuentes',
+    iso: 'Análisis estadístico no paramétrico',
+    short: 'Compara la calidad media de los datasets según el repositorio de origen (Kaggle, UCI, Zenodo…).',
+    mide: 'La distribución del Quality Score por fuente (media, mediana, desvío) y si las diferencias entre fuentes son estadísticamente significativas.',
+    calculo: 'Se agrupan los análisis por fuente y se aplica el test de Kruskal-Wallis, una prueba no paramétrica que no asume distribución normal. Si p < 0.05, hay diferencia significativa.',
+    importancia: 'Permite responder empíricamente "¿qué repositorio publica datasets de mayor calidad?". Requiere suficientes análisis por fuente y variabilidad para ser concluyente.',
+    ejemplo: 'Con muchos datasets, podría mostrar que UCI tiene mediana 88 vs Kaggle 74, con p = 0.01 → diferencia real.',
+  },
+};

@@ -23,6 +23,7 @@ model Usuario {
   historial_exportaciones HistorialExportacion[]
   auditlog                AuditLog[]
   reset_tokens            PasswordResetToken[]
+  quality_reports         QualityReport[]
 }
 
 model Token {
@@ -127,4 +128,22 @@ model AuditLog {
   ip         String?  @db.VarChar(50)
   created_at DateTime @default(now())
   usuario    Usuario? @relation(fields: [usuario_id], references: [id])
+}
+
+model QualityReport {
+  id            Int      @id @default(autoincrement())
+  usuario_id    Int?
+  dataset_ref   String   @db.VarChar(255)
+  nombre        String?  @db.VarChar(255)
+  fuente        String?  @db.VarChar(100)
+  quality_score Int      @default(0)
+  rows_total    Int?
+  rows_sampled  Int?
+  columnas      Int?
+  metrics       Json
+  issues        Json
+  alerts        Json
+  status        String   @default("done") @db.VarChar(20)
+  created_at    DateTime @default(now())
+  usuario       Usuario? @relation(fields: [usuario_id], references: [id])
 }

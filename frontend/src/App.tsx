@@ -6,6 +6,7 @@ import ResetPassword from './pages/ResetPassword';
 import Settings from './pages/Settings';
 import Exports from './pages/Exports';
 import SearchLaboratory from './pages/SearchLaboratory';
+import QualityAnalysis from './pages/QualityAnalysis';
 import Home from './pages/Home';
 import Keywords from './pages/Keywords';
 import Admin from './pages/Admin';
@@ -28,6 +29,7 @@ function App() {
           <Route path="/keywords"   element={<PrivateRoute><Keywords /></PrivateRoute>} />
           <Route path="/history"    element={<PrivateRoute><SearchHistory /></PrivateRoute>} />
           <Route path="/exports"    element={<PrivateRoute><Exports /></PrivateRoute>} />
+          <Route path="/quality"    element={<PrivateRoute><QualityAnalysis /></PrivateRoute>} />
           <Route path="/settings"   element={<PrivateRoute><Settings /></PrivateRoute>} />
           <Route path="/admin"      element={<PrivateRoute><Admin /></PrivateRoute>} />
 

@@ -32,9 +32,8 @@ RUN npm run build
 # Crear link simbólico para que 'python' apunte a 'python3'
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
-# 6. COPIAR EL MOTOR ETL DE PYTHON
-RUN mkdir -p python
-COPY python/etl.py ./python/etl.py
+# 6. COPIAR LOS MOTORES PYTHON (etl + calidad/validación/descarga/comparación + config)
+COPY python/ ./python/
 
 # 7. ASEGURAR CARPETA DE EXPORTS
 RUN mkdir -p exports

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Database, FileSpreadsheet, Settings as SettingsIcon, Play, LogOut, BookOpen, ShieldCheck, History } from 'lucide-react';
+import { Database, FileSpreadsheet, Settings as SettingsIcon, Play, LogOut, BookOpen, ShieldCheck, History, Activity } from 'lucide-react';
 
 const Sidebar: React.FC = () => {
   const navigate = useNavigate();
@@ -20,6 +20,7 @@ const Sidebar: React.FC = () => {
     { id: 'keywords', label: 'Diccionario Keywords', icon: <BookOpen size={20} />, path: '/keywords' },
     { id: 'history', label: 'Historial', icon: <History size={20} />, path: '/history' },
     { id: 'exports', label: 'Mis Exportaciones', icon: <FileSpreadsheet size={20} />, path: '/exports' },
+    { id: 'quality', label: 'Calidad de Datos', icon: <Activity size={20} />, path: '/quality' },
     { id: 'settings', label: 'Configuración', icon: <SettingsIcon size={20} />, path: '/settings' },
   ];
 
